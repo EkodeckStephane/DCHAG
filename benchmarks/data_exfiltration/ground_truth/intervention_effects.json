@@ -1,0 +1,102 @@
+[
+  {
+    "baseline_risk": 0.5105666666666666,
+    "control": "separation_of_duties",
+    "intervention_risk": 0.41326666666666667,
+    "n": 60000,
+    "paired_se": 0.0012099185503089205,
+    "risk_reduction": 0.0973,
+    "seed": 30301,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5074163319946452,
+        "intervention_risk": 0.41234270414993307,
+        "n": 37350,
+        "paired_se": 0.0015177392532467501,
+        "risk_reduction": 0.09507362784471218
+      },
+      "1": {
+        "baseline_risk": 0.5157615894039735,
+        "intervention_risk": 0.41479028697571746,
+        "n": 22650,
+        "paired_se": 0.002001986943101674,
+        "risk_reduction": 0.10097130242825607
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5105666666666666,
+    "control": "dlp_enforcement",
+    "intervention_risk": 0.23383333333333334,
+    "n": 60000,
+    "paired_se": 0.001826450708695907,
+    "risk_reduction": 0.27673333333333333,
+    "seed": 30301,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5074163319946452,
+        "intervention_risk": 0.23336010709504684,
+        "n": 37350,
+        "paired_se": 0.0023079789269354724,
+        "risk_reduction": 0.2740562248995984
+      },
+      "1": {
+        "baseline_risk": 0.5157615894039735,
+        "intervention_risk": 0.23461368653421633,
+        "n": 22650,
+        "paired_se": 0.002987188855320145,
+        "risk_reduction": 0.28114790286975716
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5105666666666666,
+    "control": "export_confirmation",
+    "intervention_risk": 0.3567666666666667,
+    "n": 60000,
+    "paired_se": 0.0014727962584192178,
+    "risk_reduction": 0.1538,
+    "seed": 30301,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5074163319946452,
+        "intervention_risk": 0.355528781793842,
+        "n": 37350,
+        "paired_se": 0.001857155713621176,
+        "risk_reduction": 0.15188755020080322
+      },
+      "1": {
+        "baseline_risk": 0.5157615894039735,
+        "intervention_risk": 0.35880794701986757,
+        "n": 22650,
+        "paired_se": 0.0024170571080642236,
+        "risk_reduction": 0.15695364238410597
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5105666666666666,
+    "control": "egress_protection",
+    "intervention_risk": 0.35025,
+    "n": 60000,
+    "paired_se": 0.0014978733629169442,
+    "risk_reduction": 0.16031666666666666,
+    "seed": 30301,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5074163319946452,
+        "intervention_risk": 0.3480053547523427,
+        "n": 37350,
+        "paired_se": 0.0018941374030320888,
+        "risk_reduction": 0.15941097724230255
+      },
+      "1": {
+        "baseline_risk": 0.5157615894039735,
+        "intervention_risk": 0.3539514348785872,
+        "n": 22650,
+        "paired_se": 0.002447087890943957,
+        "risk_reduction": 0.1618101545253863
+      }
+    }
+  }
+]

@@ -1,0 +1,5 @@
+context,kendall_tau,spearman_rho,selected_control,best_true_control,normalized_regret
+bec_payment,1.0,1.0,oob_confirmation,oob_confirmation,0.0
+data_exfiltration,0.6666666666666669,0.7999999999999999,dlp_enforcement,dlp_enforcement,0.0
+helpdesk_identity,0.6666666666666669,0.7999999999999999,mfa_enforcement,mfa_enforcement,0.0
+it_ot_maintenance,1.0,1.0,jump_host_enforcement,jump_host_enforcement,0.0

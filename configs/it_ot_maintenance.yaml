@@ -1,0 +1,86 @@
+name: it_ot_maintenance
+horizon: 4
+target: compromise
+baseline_controls:
+  change_validation: 0
+  jump_host_enforcement: 0
+  signed_change_package: 0
+  command_allowlist: 0
+metadata:
+  domain: it_ot_maintenance
+  parameter_status: topology_only_placeholders
+nodes:
+- id: high_risk_context
+  type: context
+  intercept: 0.0
+- id: change_validation
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: jump_host_enforcement
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: signed_change_package
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: command_allowlist
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: malicious_maintenance_request
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: approve_maintenance
+  type: human
+  intercept: 0.0
+  parents:
+  - node: malicious_maintenance_request
+    coef: 1.0
+  - node: change_validation
+    coef: -1.0
+- id: maintenance_window_open
+  type: process
+  intercept: 0.0
+  parents:
+  - node: approve_maintenance
+    coef: 1.0
+- id: remote_privileged_session
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: maintenance_window_open
+    coef: 1.0
+  - node: jump_host_enforcement
+    coef: -1.0
+- id: unsafe_control_change
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: remote_privileged_session
+    coef: 1.0
+  - node: signed_change_package
+    coef: -1.0
+  - node: command_allowlist
+    coef: -1.0
+- id: compromise
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: unsafe_control_change
+    coef: 1.0
+  - node: compromise
+    coef: 1.0
+    lag: 1

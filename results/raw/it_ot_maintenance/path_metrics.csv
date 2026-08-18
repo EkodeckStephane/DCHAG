@@ -1,0 +1,6 @@
+context,model,n_target_positive,precision,recall,f1
+it_ot_maintenance,DCHAG_full,1001,1.0,1.0,1.0
+it_ot_maintenance,DCHAG_technical_only,1001,1.0,0.7022407814740482,0.7983068403221577
+it_ot_maintenance,DCHAG_no_human,1001,1.0,0.8435132910157884,0.9047703795811356
+it_ot_maintenance,DCHAG_no_process,1001,1.0,0.7022407814740482,0.7983068403221577
+it_ot_maintenance,DCHAG_no_temporal,1001,0.6803196803196803,0.5753881095039937,0.6036496077901267

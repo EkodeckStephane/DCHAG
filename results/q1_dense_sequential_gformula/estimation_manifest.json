@@ -1,0 +1,19 @@
+{
+  "date": "2026-08-17",
+  "status": "estimates_frozen_before_ground_truth_scoring",
+  "amendment": "experiments/q1_causal_baseline_amendment_v1_1.md",
+  "ground_truth_read_by_estimator": false,
+  "contexts": [
+    "bec_payment",
+    "data_exfiltration",
+    "helpdesk_identity",
+    "it_ot_maintenance"
+  ],
+  "model": "CrossFittedDenseSequentialGFormula",
+  "folds": 5,
+  "fold_seed": 260817,
+  "mc_per_trajectory": 20,
+  "simulation_seed_base": 811700,
+  "effect_estimates_sha256": "53212a5b51c491b22bc0b81046ae1d867447e97b9badaf95970aef39e8993933",
+  "local_positivity_sha256": "c2542eaf66d1ba7ecbc68accf153109c83cd28a7035767cc31fb399f4ef372f9"
+}

@@ -1,0 +1,6 @@
+context,model,n_target_positive,precision,recall,f1
+helpdesk_identity,DCHAG_full,1012,1.0,1.0,1.0
+helpdesk_identity,DCHAG_technical_only,1012,1.0,0.717098665594655,0.8114160225434439
+helpdesk_identity,DCHAG_no_human,1012,1.0,0.8420369425905929,0.9055004118959696
+helpdesk_identity,DCHAG_no_process,1012,1.0,0.717098665594655,0.8114160225434439
+helpdesk_identity,DCHAG_no_temporal,1012,0.7075098814229249,0.4932468970294476,0.5475485222185041

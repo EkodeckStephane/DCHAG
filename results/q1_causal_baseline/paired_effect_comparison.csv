@@ -1,0 +1,2 @@
+comparator,dchag_mae,comparator_mae,mean_abs_error_difference_DCHAG_minus_comparator,median_difference,ci95_low,ci95_high,p_exact_signflip
+CrossFittedFlexibleGFormula,0.0039058333333332877,0.03713699031837778,-0.03323115698504449,-0.024394301734592935,-0.04688256667274691,-0.020959640167780232,3.0517578125e-05

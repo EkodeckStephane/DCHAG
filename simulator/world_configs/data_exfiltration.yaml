@@ -1,0 +1,17 @@
+name: data_exfiltration
+horizon: 4
+target: compromise
+baseline_controls: {separation_of_duties: 0, dlp_enforcement: 0, export_confirmation: 0, egress_protection: 0}
+metadata: {domain: data_exfiltration}
+nodes:
+  - {id: high_risk_context, type: context, intercept: -0.5}
+  - {id: separation_of_duties, type: control, intercept: -1.1, parents: [{node: high_risk_context, coef: 1.3}]}
+  - {id: dlp_enforcement, type: control, intercept: -0.8, parents: [{node: high_risk_context, coef: 1.1}]}
+  - {id: export_confirmation, type: control, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: egress_protection, type: control, intercept: -1.1, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: suspicious_access_request, type: technical, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.6}]}
+  - {id: approve_access, type: human, intercept: -1.5, parents: [{node: suspicious_access_request, coef: 2.5}, {node: separation_of_duties, coef: -1.9}]}
+  - {id: access_authorized, type: process, intercept: -2.2, parents: [{node: approve_access, coef: 3.9}]}
+  - {id: sensitive_data_accessed, type: technical, intercept: -2.0, parents: [{node: access_authorized, coef: 3.6}]}
+  - {id: export_executed, type: technical, intercept: -2.1, parents: [{node: sensitive_data_accessed, coef: 3.4}, {node: dlp_enforcement, coef: -2.2}, {node: export_confirmation, coef: -1.2}]}
+  - {id: compromise, type: technical, intercept: -3.0, parents: [{node: export_executed, coef: 4.3}, {node: egress_protection, coef: -0.9}, {node: compromise, coef: 3.0, lag: 1}]}

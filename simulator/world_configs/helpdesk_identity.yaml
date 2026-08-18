@@ -1,0 +1,17 @@
+name: helpdesk_identity
+horizon: 4
+target: compromise
+baseline_controls: {strong_verification: 0, mfa_enforcement: 0, manager_callback: 0, session_risk_block: 0}
+metadata: {domain: identity_helpdesk}
+nodes:
+  - {id: high_risk_context, type: context, intercept: -0.4}
+  - {id: strong_verification, type: control, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.4}]}
+  - {id: mfa_enforcement, type: control, intercept: -0.7, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: manager_callback, type: control, intercept: -1.1, parents: [{node: high_risk_context, coef: 1.1}]}
+  - {id: session_risk_block, type: control, intercept: -1.2, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: malicious_reset_request, type: technical, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.5}]}
+  - {id: approve_reset, type: human, intercept: -1.7, parents: [{node: malicious_reset_request, coef: 2.4}, {node: strong_verification, coef: -2.1}]}
+  - {id: reset_authorized, type: process, intercept: -2.4, parents: [{node: approve_reset, coef: 4.0}, {node: manager_callback, coef: -1.2}]}
+  - {id: credential_compromised, type: technical, intercept: -2.2, parents: [{node: reset_authorized, coef: 3.8}, {node: credential_compromised, coef: 2.4, lag: 1}]}
+  - {id: privileged_access, type: technical, intercept: -2.4, parents: [{node: credential_compromised, coef: 3.5}, {node: mfa_enforcement, coef: -2.0}, {node: session_risk_block, coef: -1.0}]}
+  - {id: compromise, type: technical, intercept: -3.0, parents: [{node: privileged_access, coef: 4.2}, {node: compromise, coef: 3.0, lag: 1}]}

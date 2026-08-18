@@ -1,0 +1,738 @@
+{
+  "DCHAG_full": {
+    "baseline_controls": {
+      "change_validation": 0,
+      "command_allowlist": 0,
+      "jump_host_enforcement": 0,
+      "signed_change_package": 0
+    },
+    "name": "it_ot_maintenance",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.37516487355845074,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "change_validation",
+        "intercept": -1.012079846981998,
+        "parents": [
+          {
+            "coef": 1.4054112086317911,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "jump_host_enforcement",
+        "intercept": -0.9031640348264872,
+        "parents": [
+          {
+            "coef": 1.018483479432535,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "signed_change_package",
+        "intercept": -1.1164052571673542,
+        "parents": [
+          {
+            "coef": 1.0088849132490123,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "command_allowlist",
+        "intercept": -1.1947614852579937,
+        "parents": [
+          {
+            "coef": 1.0016314465430394,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_maintenance_request",
+        "intercept": -1.1270260383885413,
+        "parents": [
+          {
+            "coef": 1.7219811921453052,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_maintenance",
+        "intercept": -1.65988287796206,
+        "parents": [
+          {
+            "coef": 2.582353228867725,
+            "lag": 0,
+            "node": "malicious_maintenance_request"
+          },
+          {
+            "coef": -2.017316929953189,
+            "lag": 0,
+            "node": "change_validation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "maintenance_window_open",
+        "intercept": -2.2807596121676665,
+        "parents": [
+          {
+            "coef": 3.956245734223128,
+            "lag": 0,
+            "node": "approve_maintenance"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "remote_privileged_session",
+        "intercept": -2.209647284582172,
+        "parents": [
+          {
+            "coef": 3.8131641688603954,
+            "lag": 0,
+            "node": "maintenance_window_open"
+          },
+          {
+            "coef": -1.8444498882292704,
+            "lag": 0,
+            "node": "jump_host_enforcement"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "unsafe_control_change",
+        "intercept": -2.212781024919586,
+        "parents": [
+          {
+            "coef": 3.830685601838043,
+            "lag": 0,
+            "node": "remote_privileged_session"
+          },
+          {
+            "coef": -1.3122949056190045,
+            "lag": 0,
+            "node": "signed_change_package"
+          },
+          {
+            "coef": -0.9293893569439035,
+            "lag": 0,
+            "node": "command_allowlist"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -2.9877857768843783,
+        "parents": [
+          {
+            "coef": 4.344638416412189,
+            "lag": 0,
+            "node": "unsafe_control_change"
+          },
+          {
+            "coef": 2.996068966399509,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_human": {
+    "baseline_controls": {
+      "change_validation": 0,
+      "command_allowlist": 0,
+      "jump_host_enforcement": 0,
+      "signed_change_package": 0
+    },
+    "name": "it_ot_maintenance",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.37516487355845074,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "change_validation",
+        "intercept": -1.012079846981998,
+        "parents": [
+          {
+            "coef": 1.4054112086317911,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "jump_host_enforcement",
+        "intercept": -0.9031640348264872,
+        "parents": [
+          {
+            "coef": 1.018483479432535,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "signed_change_package",
+        "intercept": -1.1164052571673542,
+        "parents": [
+          {
+            "coef": 1.0088849132490123,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "command_allowlist",
+        "intercept": -1.1947614852579937,
+        "parents": [
+          {
+            "coef": 1.0016314465430394,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_maintenance_request",
+        "intercept": -1.1270260383885413,
+        "parents": [
+          {
+            "coef": 1.7219811921453052,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "maintenance_window_open",
+        "intercept": -0.8786257596195257,
+        "parents": [],
+        "type": "process"
+      },
+      {
+        "id": "remote_privileged_session",
+        "intercept": -2.209647284582172,
+        "parents": [
+          {
+            "coef": 3.8131641688603954,
+            "lag": 0,
+            "node": "maintenance_window_open"
+          },
+          {
+            "coef": -1.8444498882292704,
+            "lag": 0,
+            "node": "jump_host_enforcement"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "unsafe_control_change",
+        "intercept": -2.212781024919586,
+        "parents": [
+          {
+            "coef": 3.830685601838043,
+            "lag": 0,
+            "node": "remote_privileged_session"
+          },
+          {
+            "coef": -1.3122949056190045,
+            "lag": 0,
+            "node": "signed_change_package"
+          },
+          {
+            "coef": -0.9293893569439035,
+            "lag": 0,
+            "node": "command_allowlist"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -2.9877857768843783,
+        "parents": [
+          {
+            "coef": 4.344638416412189,
+            "lag": 0,
+            "node": "unsafe_control_change"
+          },
+          {
+            "coef": 2.996068966399509,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_process": {
+    "baseline_controls": {
+      "change_validation": 0,
+      "command_allowlist": 0,
+      "jump_host_enforcement": 0,
+      "signed_change_package": 0
+    },
+    "name": "it_ot_maintenance",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.37516487355845074,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "change_validation",
+        "intercept": -1.012079846981998,
+        "parents": [
+          {
+            "coef": 1.4054112086317911,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "jump_host_enforcement",
+        "intercept": -0.9031640348264872,
+        "parents": [
+          {
+            "coef": 1.018483479432535,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "signed_change_package",
+        "intercept": -1.1164052571673542,
+        "parents": [
+          {
+            "coef": 1.0088849132490123,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "command_allowlist",
+        "intercept": -1.1947614852579937,
+        "parents": [
+          {
+            "coef": 1.0016314465430394,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_maintenance_request",
+        "intercept": -1.1270260383885413,
+        "parents": [
+          {
+            "coef": 1.7219811921453052,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_maintenance",
+        "intercept": -1.65988287796206,
+        "parents": [
+          {
+            "coef": 2.582353228867725,
+            "lag": 0,
+            "node": "malicious_maintenance_request"
+          },
+          {
+            "coef": -2.017316929953189,
+            "lag": 0,
+            "node": "change_validation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "remote_privileged_session",
+        "intercept": -0.7984803495585893,
+        "parents": [
+          {
+            "coef": -0.978383768520502,
+            "lag": 0,
+            "node": "jump_host_enforcement"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "unsafe_control_change",
+        "intercept": -2.212781024919586,
+        "parents": [
+          {
+            "coef": 3.830685601838043,
+            "lag": 0,
+            "node": "remote_privileged_session"
+          },
+          {
+            "coef": -1.3122949056190045,
+            "lag": 0,
+            "node": "signed_change_package"
+          },
+          {
+            "coef": -0.9293893569439035,
+            "lag": 0,
+            "node": "command_allowlist"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -2.9877857768843783,
+        "parents": [
+          {
+            "coef": 4.344638416412189,
+            "lag": 0,
+            "node": "unsafe_control_change"
+          },
+          {
+            "coef": 2.996068966399509,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_temporal": {
+    "baseline_controls": {
+      "change_validation": 0,
+      "command_allowlist": 0,
+      "jump_host_enforcement": 0,
+      "signed_change_package": 0
+    },
+    "name": "it_ot_maintenance",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.37516487355845074,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "change_validation",
+        "intercept": -1.012079846981998,
+        "parents": [
+          {
+            "coef": 1.4054112086317911,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "jump_host_enforcement",
+        "intercept": -0.9031640348264872,
+        "parents": [
+          {
+            "coef": 1.018483479432535,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "signed_change_package",
+        "intercept": -1.1164052571673542,
+        "parents": [
+          {
+            "coef": 1.0088849132490123,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "command_allowlist",
+        "intercept": -1.1947614852579937,
+        "parents": [
+          {
+            "coef": 1.0016314465430394,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_maintenance_request",
+        "intercept": -1.1270260383885413,
+        "parents": [
+          {
+            "coef": 1.7219811921453052,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_maintenance",
+        "intercept": -1.65988287796206,
+        "parents": [
+          {
+            "coef": 2.582353228867725,
+            "lag": 0,
+            "node": "malicious_maintenance_request"
+          },
+          {
+            "coef": -2.017316929953189,
+            "lag": 0,
+            "node": "change_validation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "maintenance_window_open",
+        "intercept": -2.2807596121676665,
+        "parents": [
+          {
+            "coef": 3.956245734223128,
+            "lag": 0,
+            "node": "approve_maintenance"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "remote_privileged_session",
+        "intercept": -2.209647284582172,
+        "parents": [
+          {
+            "coef": 3.8131641688603954,
+            "lag": 0,
+            "node": "maintenance_window_open"
+          },
+          {
+            "coef": -1.8444498882292704,
+            "lag": 0,
+            "node": "jump_host_enforcement"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "unsafe_control_change",
+        "intercept": -2.212781024919586,
+        "parents": [
+          {
+            "coef": 3.830685601838043,
+            "lag": 0,
+            "node": "remote_privileged_session"
+          },
+          {
+            "coef": -1.3122949056190045,
+            "lag": 0,
+            "node": "signed_change_package"
+          },
+          {
+            "coef": -0.9293893569439035,
+            "lag": 0,
+            "node": "command_allowlist"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -1.7976907698661462,
+        "parents": [
+          {
+            "coef": 3.4185320979465015,
+            "lag": 0,
+            "node": "unsafe_control_change"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_technical_only": {
+    "baseline_controls": {
+      "change_validation": 0,
+      "command_allowlist": 0,
+      "jump_host_enforcement": 0,
+      "signed_change_package": 0
+    },
+    "name": "it_ot_maintenance",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.37516487355845074,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "change_validation",
+        "intercept": -1.012079846981998,
+        "parents": [
+          {
+            "coef": 1.4054112086317911,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "jump_host_enforcement",
+        "intercept": -0.9031640348264872,
+        "parents": [
+          {
+            "coef": 1.018483479432535,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "signed_change_package",
+        "intercept": -1.1164052571673542,
+        "parents": [
+          {
+            "coef": 1.0088849132490123,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "command_allowlist",
+        "intercept": -1.1947614852579937,
+        "parents": [
+          {
+            "coef": 1.0016314465430394,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_maintenance_request",
+        "intercept": -1.1270260383885413,
+        "parents": [
+          {
+            "coef": 1.7219811921453052,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "remote_privileged_session",
+        "intercept": -0.7984803495585893,
+        "parents": [
+          {
+            "coef": -0.978383768520502,
+            "lag": 0,
+            "node": "jump_host_enforcement"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "unsafe_control_change",
+        "intercept": -2.212781024919586,
+        "parents": [
+          {
+            "coef": 3.830685601838043,
+            "lag": 0,
+            "node": "remote_privileged_session"
+          },
+          {
+            "coef": -1.3122949056190045,
+            "lag": 0,
+            "node": "signed_change_package"
+          },
+          {
+            "coef": -0.9293893569439035,
+            "lag": 0,
+            "node": "command_allowlist"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -2.9877857768843783,
+        "parents": [
+          {
+            "coef": 4.344638416412189,
+            "lag": 0,
+            "node": "unsafe_control_change"
+          },
+          {
+            "coef": 2.996068966399509,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  }
+}

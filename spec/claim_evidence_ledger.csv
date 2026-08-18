@@ -1,0 +1,15 @@
+Claim ID,Claim,Origin,Evidence,Evidence status,Manuscript status,Reverification
+C001,Attack graphs support probabilistic multi-step technical-risk reasoning,literature,Wang et al. 2008,peer-reviewed,safe background,Yes
+C002,Integrating social-engineering exploits with attack graphs is novel,historical planning implication,Beckers et al. 2015; Kim et al. 2018,peer-reviewed prior art,unsafe/false as novelty,No
+C003,Dynamic social-engineering attack-graph risk assessment is novel,historical planning implication,Liu et al. 2023,peer-reviewed prior art,unsafe/false as novelty,No
+C004,Dynamic causal attack graphs are novel,historical project naming,Dong et al. 2024; Zhang 2025 preprint,peer-reviewed + preprint prior art,unsafe/false as standalone novelty,No
+C005,Business-process cyber impact propagation from event logs is novel,historical planning implication,Raptaki et al. 2025,peer-reviewed prior art,unsafe/false as standalone novelty,No
+C006,Explicit countermeasure nodes in attack graphs are novel,historical planning implication,Unger et al. 2026 and cited defense-graph lineage,peer-reviewed prior art,unsafe/false,No
+C007,Human-centric security decision-making on attack graphs is novel,historical planning implication,Abdallah et al. 2026,peer-reviewed prior art,unsafe/false broadly,No
+C008,"DCHAG models observable human decisions/events, process states, and technical states in one typed dynamic SCM",project design,project_sheet.tex; implementation not yet built,project hypothesis/design,safe only as method description after implementation,Reverify after Phase 2
+C009,DCHAG represents controls as structural interventions do(C=c),project design,project_sheet.tex; implementation not yet built,project hypothesis/design,safe only after formal spec + code audit,Reverify after Phase 2
+C010,DCHAG estimates control effects against known interventional ground truth,planned evaluation,ground-truth simulator not yet built,planned evidence,not yet a result,Reverify after Phase 5
+C011,DCHAG reuses unchanged core semantics across multiple workflows,planned portability claim,not yet implemented,planned evidence,not yet a result,Reverify after Phase 5
+C012,The complete protected conjunction has no equivalent peer-reviewed antecedent in the current search,Phase 0 search,current primary-source novelty search,search finding with finite coverage,safe only as internal gate; not as first claim,Rerun before citation freeze/submission
+C013,Canonical manuscript title is Dynamic Causal Human Attack Graphs for Counterfactual Cyber Risk,execution registry,DCHAG_MASTER_PROMPT.md,project constraint,safe,No
+C014,Reader-facing manuscript uses Elsevier cas-dc class,execution rule,DCHAG_MASTER_PROMPT.md / TracePolicy precedent,project constraint,safe,Verify at Phase 7

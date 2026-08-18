@@ -1,0 +1,54 @@
+{
+  "dropped": {
+    "bec_payment": [
+      {
+        "child": "oob_confirmation",
+        "lag": 0,
+        "parent": "high_risk_context"
+      },
+      {
+        "child": "compromise",
+        "lag": 1,
+        "parent": "compromise"
+      }
+    ],
+    "data_exfiltration": [
+      {
+        "child": "export_confirmation",
+        "lag": 0,
+        "parent": "high_risk_context"
+      },
+      {
+        "child": "suspicious_access_request",
+        "lag": 0,
+        "parent": "high_risk_context"
+      }
+    ],
+    "helpdesk_identity": [
+      {
+        "child": "malicious_reset_request",
+        "lag": 0,
+        "parent": "high_risk_context"
+      },
+      {
+        "child": "credential_compromised",
+        "lag": 1,
+        "parent": "credential_compromised"
+      }
+    ],
+    "it_ot_maintenance": [
+      {
+        "child": "change_validation",
+        "lag": 0,
+        "parent": "high_risk_context"
+      },
+      {
+        "child": "malicious_maintenance_request",
+        "lag": 0,
+        "parent": "high_risk_context"
+      }
+    ]
+  },
+  "fraction_target": 0.2,
+  "seed": 73117
+}

@@ -1,0 +1,86 @@
+name: data_exfiltration
+horizon: 4
+target: compromise
+baseline_controls:
+  separation_of_duties: 0
+  dlp_enforcement: 0
+  export_confirmation: 0
+  egress_protection: 0
+metadata:
+  domain: data_exfiltration
+  parameter_status: topology_only_placeholders
+nodes:
+- id: high_risk_context
+  type: context
+  intercept: 0.0
+- id: separation_of_duties
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: dlp_enforcement
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: export_confirmation
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: egress_protection
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: suspicious_access_request
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: approve_access
+  type: human
+  intercept: 0.0
+  parents:
+  - node: suspicious_access_request
+    coef: 1.0
+  - node: separation_of_duties
+    coef: -1.0
+- id: access_authorized
+  type: process
+  intercept: 0.0
+  parents:
+  - node: approve_access
+    coef: 1.0
+- id: sensitive_data_accessed
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: access_authorized
+    coef: 1.0
+- id: export_executed
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: sensitive_data_accessed
+    coef: 1.0
+  - node: dlp_enforcement
+    coef: -1.0
+  - node: export_confirmation
+    coef: -1.0
+- id: compromise
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: export_executed
+    coef: 1.0
+  - node: egress_protection
+    coef: -1.0
+  - node: compromise
+    coef: 1.0
+    lag: 1

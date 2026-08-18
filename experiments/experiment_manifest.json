@@ -1,0 +1,60 @@
+{
+  "freeze_date": "2026-08-17",
+  "benchmark_version": "1.0",
+  "contexts": [
+    "bec_payment",
+    "data_exfiltration",
+    "helpdesk_identity",
+    "it_ot_maintenance"
+  ],
+  "training_trajectories_per_context": 12000,
+  "test_trajectories_per_context": 3000,
+  "horizon": 4,
+  "ground_truth_pairs_per_control": 60000,
+  "candidate_controls_per_context": 4,
+  "evaluated_models": [
+    "DCHAG_full",
+    "ObservationalOutcomeBaseline",
+    "DCHAG_technical_only",
+    "DCHAG_no_human",
+    "DCHAG_no_process",
+    "DCHAG_no_temporal",
+    "SEAGInspiredRiskBaseline",
+    "QualitativeRiskMatrixBaseline"
+  ],
+  "primary_endpoints": [
+    "intervention_effect_absolute_error",
+    "intervention_effect_bias",
+    "control_rank_kendall_tau",
+    "control_rank_spearman_rho",
+    "normalized_control_regret",
+    "target_brier_score",
+    "target_log_loss"
+  ],
+  "secondary_endpoints": [
+    "path_node_precision",
+    "path_node_recall",
+    "path_node_f1",
+    "runtime_seconds",
+    "peak_rss_mb"
+  ],
+  "robustness_variants": [
+    "missing_10",
+    "missing_30",
+    "missing_50",
+    "human_process_unobserved",
+    "structural_edge_drop"
+  ],
+  "estimation_mc_draws": 50000,
+  "estimation_seed_base": 51000,
+  "bootstrap_replicates": 2000,
+  "bootstrap_seed": 62026,
+  "multiple_comparison_correction": "Holm",
+  "paired_design": true,
+  "exclusion_criteria": "No post-hoc run exclusions. A run is invalid only for a logged execution/data-integrity failure defined before analysis.",
+  "stopping_rule": "Execute the frozen context-control-model grid once after tests pass; corrections require a versioned manifest and full rerun.",
+  "ground_truth_access_rule": "Estimator and baseline fitting code may not read benchmark ground_truth directories. Scoring code may read them after predictions/effects are frozen.",
+  "analysis_version": "1.2",
+  "predictive_baseline_correction": "Risk-only baselines use prospective context/control-plan features only; realized human/process/technical states removed after fairness audit.",
+  "parameter_separation": "Estimator receives topology-only configs; true simulator coefficients are stored under simulator/world_configs and excluded from retained estimator code paths."
+}

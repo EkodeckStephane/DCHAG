@@ -1,0 +1,57 @@
+schema_version: "1.0"
+project: DCHAG
+attack_state_types:
+  - human
+  - process
+  - technical
+auxiliary_types:
+  - control
+  - context
+domains:
+  binary: [0, 1]
+node_requirements:
+  human:
+    description: "Observable or operationally inferable human decision/event"
+    allowed_equations: [logistic_bernoulli, deterministic_boolean]
+  process:
+    description: "Business/workflow state or authorization progression"
+    allowed_equations: [logistic_bernoulli, deterministic_boolean]
+  technical:
+    description: "Technical security or compromise state"
+    allowed_equations: [logistic_bernoulli, deterministic_boolean]
+  control:
+    description: "Manipulable defensive variable with observational assignment mechanism"
+    allowed_equations: [logistic_bernoulli, deterministic_boolean]
+edge_requirements:
+  lag_min: 0
+  same_slice_self_loop: false
+  unrolled_graph_must_be_acyclic: true
+intervention_requirements:
+  operation: "surgical_assignment_replacement"
+  delete_incoming_edges_to_intervened_control: true
+  preserve_other_mechanisms: true
+portability_contract:
+  core_immutable_components:
+    - type_semantics
+    - temporal_unrolling
+    - equation_evaluator
+    - intervention_operator
+    - evidence_interface
+    - replay_semantics
+  context_configurable_components:
+    - node_instances
+    - graph_topology
+    - coefficients
+    - workflow_adapters
+    - controls
+    - domain_predicates
+prohibited_human_node_examples:
+  - careless_person
+  - gullible_employee
+  - negligent_user
+preferred_human_node_examples:
+  - approve_reset
+  - disclose_credential
+  - authorize_payment
+  - approve_export
+  - approve_maintenance

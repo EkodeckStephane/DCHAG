@@ -1,0 +1,89 @@
+name: helpdesk_identity
+horizon: 4
+target: compromise
+baseline_controls:
+  strong_verification: 0
+  mfa_enforcement: 0
+  manager_callback: 0
+  session_risk_block: 0
+metadata:
+  domain: identity_helpdesk
+  parameter_status: topology_only_placeholders
+nodes:
+- id: high_risk_context
+  type: context
+  intercept: 0.0
+- id: strong_verification
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: mfa_enforcement
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: manager_callback
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: session_risk_block
+  type: control
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: malicious_reset_request
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: high_risk_context
+    coef: 1.0
+- id: approve_reset
+  type: human
+  intercept: 0.0
+  parents:
+  - node: malicious_reset_request
+    coef: 1.0
+  - node: strong_verification
+    coef: -1.0
+- id: reset_authorized
+  type: process
+  intercept: 0.0
+  parents:
+  - node: approve_reset
+    coef: 1.0
+  - node: manager_callback
+    coef: -1.0
+- id: credential_compromised
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: reset_authorized
+    coef: 1.0
+  - node: credential_compromised
+    coef: 1.0
+    lag: 1
+- id: privileged_access
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: credential_compromised
+    coef: 1.0
+  - node: mfa_enforcement
+    coef: -1.0
+  - node: session_risk_block
+    coef: -1.0
+- id: compromise
+  type: technical
+  intercept: 0.0
+  parents:
+  - node: privileged_access
+    coef: 1.0
+  - node: compromise
+    coef: 1.0
+    lag: 1

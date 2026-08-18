@@ -1,0 +1,17 @@
+name: bec_payment
+horizon: 4
+target: compromise
+baseline_controls: {oob_confirmation: 0, dual_approval: 0, beneficiary_lock: 0, payment_hold: 0}
+metadata: {domain: bec_payment}
+nodes:
+  - {id: high_risk_context, type: context, intercept: -0.3}
+  - {id: oob_confirmation, type: control, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.5}]}
+  - {id: dual_approval, type: control, intercept: -0.9, parents: [{node: high_risk_context, coef: 1.2}]}
+  - {id: beneficiary_lock, type: control, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: payment_hold, type: control, intercept: -1.2, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: mailbox_controlled, type: technical, intercept: -1.2, parents: [{node: high_risk_context, coef: 1.6}]}
+  - {id: accept_payment_request, type: human, intercept: -1.8, parents: [{node: mailbox_controlled, coef: 2.7}, {node: oob_confirmation, coef: -2.3}]}
+  - {id: payment_approved, type: process, intercept: -2.1, parents: [{node: accept_payment_request, coef: 3.8}, {node: dual_approval, coef: -1.8}]}
+  - {id: beneficiary_changed, type: process, intercept: -2.0, parents: [{node: payment_approved, coef: 3.6}, {node: beneficiary_lock, coef: -1.2}]}
+  - {id: fraudulent_transfer, type: technical, intercept: -2.4, parents: [{node: beneficiary_changed, coef: 4.0}, {node: payment_hold, coef: -1.0}]}
+  - {id: compromise, type: technical, intercept: -3.0, parents: [{node: fraudulent_transfer, coef: 4.4}, {node: compromise, coef: 3.0, lag: 1}]}

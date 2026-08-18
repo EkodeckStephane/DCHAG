@@ -1,0 +1,37 @@
+{
+  "benchmark_version": "1.0",
+  "context": "helpdesk_identity",
+  "controls": [
+    "strong_verification",
+    "mfa_enforcement",
+    "manager_callback",
+    "session_risk_block"
+  ],
+  "estimator_allowed_files": [
+    "train_observed.csv",
+    "test_observed.csv",
+    "event_log.jsonl",
+    "manifest.json"
+  ],
+  "estimator_forbidden_files": [
+    "ground_truth/test_full.npz",
+    "ground_truth/intervention_effects.json"
+  ],
+  "estimator_topology_config": "configs/helpdesk_identity.yaml",
+  "estimator_topology_sha256": "ce78065dd331f2fa7e00f3d5f535d822247218fc17e5ab596ae7bb68f4dbfb55",
+  "files": {
+    "event_log.jsonl": "e2b7a82fa61a0b64d92ad5e07f0800b5ee804ad647a2f9094310ac30d12d54a2",
+    "test_observed.csv": "0db0692351851b6928f591da39a35541ec91dee547c725756f08dac058269f86",
+    "train_observed.csv": "22a182ebb55f3f693b2d19217a787afd3230a8d684318ed9f3e375dcb15260cb"
+  },
+  "ground_truth_pairs_per_control": 60000,
+  "ground_truth_seed": 30302,
+  "horizon": 4,
+  "target": "compromise",
+  "test_seed": 20202,
+  "test_trajectories": 3000,
+  "train_seed": 10102,
+  "train_trajectories": 12000,
+  "world_config_file": "simulator/world_configs/helpdesk_identity.yaml",
+  "world_config_sha256": "6442abca5ab77559f488447d6091a8dde239f260795998956d9439075bd03890"
+}

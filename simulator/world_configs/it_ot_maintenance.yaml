@@ -1,0 +1,17 @@
+name: it_ot_maintenance
+horizon: 4
+target: compromise
+baseline_controls: {change_validation: 0, jump_host_enforcement: 0, signed_change_package: 0, command_allowlist: 0}
+metadata: {domain: it_ot_maintenance}
+nodes:
+  - {id: high_risk_context, type: context, intercept: -0.4}
+  - {id: change_validation, type: control, intercept: -1.0, parents: [{node: high_risk_context, coef: 1.4}]}
+  - {id: jump_host_enforcement, type: control, intercept: -0.9, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: signed_change_package, type: control, intercept: -1.1, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: command_allowlist, type: control, intercept: -1.2, parents: [{node: high_risk_context, coef: 1.0}]}
+  - {id: malicious_maintenance_request, type: technical, intercept: -1.1, parents: [{node: high_risk_context, coef: 1.7}]}
+  - {id: approve_maintenance, type: human, intercept: -1.7, parents: [{node: malicious_maintenance_request, coef: 2.6}, {node: change_validation, coef: -2.0}]}
+  - {id: maintenance_window_open, type: process, intercept: -2.3, parents: [{node: approve_maintenance, coef: 4.0}]}
+  - {id: remote_privileged_session, type: technical, intercept: -2.2, parents: [{node: maintenance_window_open, coef: 3.8}, {node: jump_host_enforcement, coef: -1.8}]}
+  - {id: unsafe_control_change, type: technical, intercept: -2.2, parents: [{node: remote_privileged_session, coef: 3.8}, {node: signed_change_package, coef: -1.3}, {node: command_allowlist, coef: -1.0}]}
+  - {id: compromise, type: technical, intercept: -3.0, parents: [{node: unsafe_control_change, coef: 4.4}, {node: compromise, coef: 3.0, lag: 1}]}

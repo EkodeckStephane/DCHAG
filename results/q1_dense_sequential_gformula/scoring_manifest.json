@@ -1,0 +1,6 @@
+{
+  "date": "2026-08-17",
+  "ground_truth_read_after_estimation_freeze": true,
+  "bootstrap_replicates": 2000,
+  "exact_signflip_pairs": 16
+}

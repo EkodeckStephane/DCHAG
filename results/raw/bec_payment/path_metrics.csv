@@ -1,0 +1,6 @@
+context,model,n_target_positive,precision,recall,f1
+bec_payment,DCHAG_full,1093,1.0,1.0,1.0
+bec_payment,DCHAG_technical_only,1093,1.0,0.5295861122713822,0.6395277766225451
+bec_payment,DCHAG_no_human,1093,1.0,0.8705256901277029,0.9216334002336768
+bec_payment,DCHAG_no_process,1093,1.0,0.5295861122713822,0.6395277766225451
+bec_payment,DCHAG_no_temporal,1093,0.6816102470265325,0.5831945603446061,0.6094206037938884

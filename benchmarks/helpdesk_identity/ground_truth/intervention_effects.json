@@ -1,0 +1,102 @@
+[
+  {
+    "baseline_risk": 0.5391833333333333,
+    "control": "strong_verification",
+    "intervention_risk": 0.4159333333333333,
+    "n": 60000,
+    "paired_se": 0.0013420211034148083,
+    "risk_reduction": 0.12325,
+    "seed": 30302,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5372250187724226,
+        "intervention_risk": 0.41635842812247964,
+        "n": 35957,
+        "paired_se": 0.001719075070713472,
+        "risk_reduction": 0.12086659064994298
+      },
+      "1": {
+        "baseline_risk": 0.5421120492451025,
+        "intervention_risk": 0.4152975918146654,
+        "n": 24043,
+        "paired_se": 0.0021461118658629643,
+        "risk_reduction": 0.12681445743043712
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5391833333333333,
+    "control": "mfa_enforcement",
+    "intervention_risk": 0.26671666666666666,
+    "n": 60000,
+    "paired_se": 0.0018176536436066433,
+    "risk_reduction": 0.2724666666666667,
+    "seed": 30302,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5372250187724226,
+        "intervention_risk": 0.26400978947075676,
+        "n": 35957,
+        "paired_se": 0.002350009809719231,
+        "risk_reduction": 0.27321522930166586
+      },
+      "1": {
+        "baseline_risk": 0.5421120492451025,
+        "intervention_risk": 0.27076487959073325,
+        "n": 24043,
+        "paired_se": 0.0028677261704804276,
+        "risk_reduction": 0.2713471696543693
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5391833333333333,
+    "control": "manager_callback",
+    "intervention_risk": 0.46885,
+    "n": 60000,
+    "paired_se": 0.0010439320328262493,
+    "risk_reduction": 0.07033333333333333,
+    "seed": 30302,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5372250187724226,
+        "intervention_risk": 0.467808771588286,
+        "n": 35957,
+        "paired_se": 0.0013403635606296094,
+        "risk_reduction": 0.06941624718413661
+      },
+      "1": {
+        "baseline_risk": 0.5421120492451025,
+        "intervention_risk": 0.47040718712307117,
+        "n": 24043,
+        "paired_se": 0.0016639184754791941,
+        "risk_reduction": 0.07170486212203137
+      }
+    }
+  },
+  {
+    "baseline_risk": 0.5391833333333333,
+    "control": "session_risk_block",
+    "intervention_risk": 0.4038333333333333,
+    "n": 60000,
+    "paired_se": 0.0013966169126309034,
+    "risk_reduction": 0.13535,
+    "seed": 30302,
+    "strata": {
+      "0": {
+        "baseline_risk": 0.5372250187724226,
+        "intervention_risk": 0.40264760686375395,
+        "n": 35957,
+        "paired_se": 0.001799759660230555,
+        "risk_reduction": 0.13457741190866868
+      },
+      "1": {
+        "baseline_risk": 0.5421120492451025,
+        "intervention_risk": 0.4056066214698665,
+        "n": 24043,
+        "paired_se": 0.0022142133746797287,
+        "risk_reduction": 0.13650542777523603
+      }
+    }
+  }
+]

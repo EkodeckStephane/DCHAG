@@ -1,0 +1,37 @@
+{
+  "benchmark_version": "1.0",
+  "context": "it_ot_maintenance",
+  "controls": [
+    "change_validation",
+    "jump_host_enforcement",
+    "signed_change_package",
+    "command_allowlist"
+  ],
+  "estimator_allowed_files": [
+    "train_observed.csv",
+    "test_observed.csv",
+    "event_log.jsonl",
+    "manifest.json"
+  ],
+  "estimator_forbidden_files": [
+    "ground_truth/test_full.npz",
+    "ground_truth/intervention_effects.json"
+  ],
+  "estimator_topology_config": "configs/it_ot_maintenance.yaml",
+  "estimator_topology_sha256": "07547317564dab890060304a8d08c8d658827ca2af3c399b4036111bbc199f67",
+  "files": {
+    "event_log.jsonl": "f84be585d21ccd2a4b6ae925506631841043568dcd242f02482f006ba0897f8e",
+    "test_observed.csv": "08f074ddfcb855c26ea803e40b88eb6639fd5e858dc31829f999e239013c5a78",
+    "train_observed.csv": "55494b5370f56816137fb0e163237924f7e89eed5a2b3a95ac9197238b35164f"
+  },
+  "ground_truth_pairs_per_control": 60000,
+  "ground_truth_seed": 30303,
+  "horizon": 4,
+  "target": "compromise",
+  "test_seed": 20203,
+  "test_trajectories": 3000,
+  "train_seed": 10103,
+  "train_trajectories": 12000,
+  "world_config_file": "simulator/world_configs/it_ot_maintenance.yaml",
+  "world_config_sha256": "296d3f4609692962bf603be9035e44502d0b6ca4b3c3508351a49adc2160aabc"
+}

@@ -1,0 +1,11 @@
+{
+  "date": "2026-08-17",
+  "contexts": [
+    "bec_payment",
+    "data_exfiltration",
+    "helpdesk_identity",
+    "it_ot_maintenance"
+  ],
+  "bootstrap_replicates": 2000,
+  "ground_truth_read_after_prediction_freeze": true
+}

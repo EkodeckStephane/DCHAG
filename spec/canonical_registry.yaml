@@ -1,0 +1,14 @@
+project: DCHAG
+canonical_title: "Dynamic Causal Human Attack Graphs for Counterfactual Cyber Risk"
+legacy_title: "From Human Decisions to System Compromise: Dynamic Causal Human Attack Graphs for Counterfactual Socio-Technical Risk Management"
+legacy_title_status: "historical planning only; prohibited in reader-facing submission artifacts"
+manuscript_class: "\\documentclass[a4paper,fleqn]{cas-dc}"
+manuscript_source: "DCHAG_manuscript.tex"
+manuscript_pdf: "DCHAG_manuscript.pdf"
+cover_letter_source: "DCHAG_cover_letter.tex"
+target_venue_internal: "Information Sciences"
+venue_name_allowed_in_scientific_manuscript: false
+author_order: "AUTHOR CONFIRMATION REQUIRED"
+corresponding_author: "AUTHOR CONFIRMATION REQUIRED"
+repository_url: "TO BE CREATED/FROZEN AFTER IMPLEMENTATION"
+audited_commit: "TO BE FROZEN AFTER REPRODUCIBILITY AUDIT"

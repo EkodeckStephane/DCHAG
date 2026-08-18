@@ -1,0 +1,50 @@
+{
+  "test_human_process_unobserved": {
+    "eligible_cells": 24000,
+    "file": "test_human_process_unobserved.csv",
+    "fraction": 1.0,
+    "masked_cells": 24000
+  },
+  "test_missing_10": {
+    "eligible_cells": 60000,
+    "file": "test_missing_10.csv",
+    "fraction": 0.09996666666666666,
+    "masked_cells": 5998
+  },
+  "test_missing_30": {
+    "eligible_cells": 60000,
+    "file": "test_missing_30.csv",
+    "fraction": 0.29995,
+    "masked_cells": 17997
+  },
+  "test_missing_50": {
+    "eligible_cells": 60000,
+    "file": "test_missing_50.csv",
+    "fraction": 0.49975,
+    "masked_cells": 29985
+  },
+  "train_human_process_unobserved": {
+    "eligible_cells": 96000,
+    "file": "train_human_process_unobserved.csv",
+    "fraction": 1.0,
+    "masked_cells": 96000
+  },
+  "train_missing_10": {
+    "eligible_cells": 240000,
+    "file": "train_missing_10.csv",
+    "fraction": 0.10034166666666666,
+    "masked_cells": 24082
+  },
+  "train_missing_30": {
+    "eligible_cells": 240000,
+    "file": "train_missing_30.csv",
+    "fraction": 0.2986,
+    "masked_cells": 71664
+  },
+  "train_missing_50": {
+    "eligible_cells": 240000,
+    "file": "train_missing_50.csv",
+    "fraction": 0.4995375,
+    "masked_cells": 119889
+  }
+}

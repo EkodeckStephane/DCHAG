@@ -1,0 +1,695 @@
+{
+  "DCHAG_full": {
+    "baseline_controls": {
+      "beneficiary_lock": 0,
+      "dual_approval": 0,
+      "oob_confirmation": 0,
+      "payment_hold": 0
+    },
+    "name": "bec_payment",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.28456564124743566,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "oob_confirmation",
+        "intercept": -1.0105801980678712,
+        "parents": [
+          {
+            "coef": 1.5143726436220153,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "dual_approval",
+        "intercept": -0.8878922167067527,
+        "parents": [
+          {
+            "coef": 1.2049631402665155,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "beneficiary_lock",
+        "intercept": -0.9995992393205188,
+        "parents": [
+          {
+            "coef": 1.0091101803845333,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "payment_hold",
+        "intercept": -1.2085458042082022,
+        "parents": [
+          {
+            "coef": 1.0073653395997944,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mailbox_controlled",
+        "intercept": -1.228443523084911,
+        "parents": [
+          {
+            "coef": 1.61759821680561,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "accept_payment_request",
+        "intercept": -1.8213422058343651,
+        "parents": [
+          {
+            "coef": 2.6829611805091482,
+            "lag": 0,
+            "node": "mailbox_controlled"
+          },
+          {
+            "coef": -2.3127947302090304,
+            "lag": 0,
+            "node": "oob_confirmation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "payment_approved",
+        "intercept": -2.0940817710504107,
+        "parents": [
+          {
+            "coef": 3.769302523165241,
+            "lag": 0,
+            "node": "accept_payment_request"
+          },
+          {
+            "coef": -1.7435378748563417,
+            "lag": 0,
+            "node": "dual_approval"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "beneficiary_changed",
+        "intercept": -1.9983246201383813,
+        "parents": [
+          {
+            "coef": 3.5985141853587526,
+            "lag": 0,
+            "node": "payment_approved"
+          },
+          {
+            "coef": -1.208977385335034,
+            "lag": 0,
+            "node": "beneficiary_lock"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "fraudulent_transfer",
+        "intercept": -2.3575071074575766,
+        "parents": [
+          {
+            "coef": 3.952543759039686,
+            "lag": 0,
+            "node": "beneficiary_changed"
+          },
+          {
+            "coef": -0.9873416678344017,
+            "lag": 0,
+            "node": "payment_hold"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.011913813184066,
+        "parents": [
+          {
+            "coef": 4.401475462829656,
+            "lag": 0,
+            "node": "fraudulent_transfer"
+          },
+          {
+            "coef": 2.9722100308661887,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_human": {
+    "baseline_controls": {
+      "beneficiary_lock": 0,
+      "dual_approval": 0,
+      "oob_confirmation": 0,
+      "payment_hold": 0
+    },
+    "name": "bec_payment",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.28456564124743566,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "oob_confirmation",
+        "intercept": -1.0105801980678712,
+        "parents": [
+          {
+            "coef": 1.5143726436220153,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "dual_approval",
+        "intercept": -0.8878922167067527,
+        "parents": [
+          {
+            "coef": 1.2049631402665155,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "beneficiary_lock",
+        "intercept": -0.9995992393205188,
+        "parents": [
+          {
+            "coef": 1.0091101803845333,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "payment_hold",
+        "intercept": -1.2085458042082022,
+        "parents": [
+          {
+            "coef": 1.0073653395997944,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mailbox_controlled",
+        "intercept": -1.228443523084911,
+        "parents": [
+          {
+            "coef": 1.61759821680561,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "payment_approved",
+        "intercept": -0.9720358402112489,
+        "parents": [
+          {
+            "coef": -0.9330584804961548,
+            "lag": 0,
+            "node": "dual_approval"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "beneficiary_changed",
+        "intercept": -1.9983246201383813,
+        "parents": [
+          {
+            "coef": 3.5985141853587526,
+            "lag": 0,
+            "node": "payment_approved"
+          },
+          {
+            "coef": -1.208977385335034,
+            "lag": 0,
+            "node": "beneficiary_lock"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "fraudulent_transfer",
+        "intercept": -2.3575071074575766,
+        "parents": [
+          {
+            "coef": 3.952543759039686,
+            "lag": 0,
+            "node": "beneficiary_changed"
+          },
+          {
+            "coef": -0.9873416678344017,
+            "lag": 0,
+            "node": "payment_hold"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.011913813184066,
+        "parents": [
+          {
+            "coef": 4.401475462829656,
+            "lag": 0,
+            "node": "fraudulent_transfer"
+          },
+          {
+            "coef": 2.9722100308661887,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_process": {
+    "baseline_controls": {
+      "beneficiary_lock": 0,
+      "dual_approval": 0,
+      "oob_confirmation": 0,
+      "payment_hold": 0
+    },
+    "name": "bec_payment",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.28456564124743566,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "oob_confirmation",
+        "intercept": -1.0105801980678712,
+        "parents": [
+          {
+            "coef": 1.5143726436220153,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "dual_approval",
+        "intercept": -0.8878922167067527,
+        "parents": [
+          {
+            "coef": 1.2049631402665155,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "beneficiary_lock",
+        "intercept": -0.9995992393205188,
+        "parents": [
+          {
+            "coef": 1.0091101803845333,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "payment_hold",
+        "intercept": -1.2085458042082022,
+        "parents": [
+          {
+            "coef": 1.0073653395997944,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mailbox_controlled",
+        "intercept": -1.228443523084911,
+        "parents": [
+          {
+            "coef": 1.61759821680561,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "accept_payment_request",
+        "intercept": -1.8213422058343651,
+        "parents": [
+          {
+            "coef": 2.6829611805091482,
+            "lag": 0,
+            "node": "mailbox_controlled"
+          },
+          {
+            "coef": -2.3127947302090304,
+            "lag": 0,
+            "node": "oob_confirmation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "fraudulent_transfer",
+        "intercept": -1.0433738219109694,
+        "parents": [
+          {
+            "coef": -0.5349426670794188,
+            "lag": 0,
+            "node": "payment_hold"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.011913813184066,
+        "parents": [
+          {
+            "coef": 4.401475462829656,
+            "lag": 0,
+            "node": "fraudulent_transfer"
+          },
+          {
+            "coef": 2.9722100308661887,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_temporal": {
+    "baseline_controls": {
+      "beneficiary_lock": 0,
+      "dual_approval": 0,
+      "oob_confirmation": 0,
+      "payment_hold": 0
+    },
+    "name": "bec_payment",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.28456564124743566,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "oob_confirmation",
+        "intercept": -1.0105801980678712,
+        "parents": [
+          {
+            "coef": 1.5143726436220153,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "dual_approval",
+        "intercept": -0.8878922167067527,
+        "parents": [
+          {
+            "coef": 1.2049631402665155,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "beneficiary_lock",
+        "intercept": -0.9995992393205188,
+        "parents": [
+          {
+            "coef": 1.0091101803845333,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "payment_hold",
+        "intercept": -1.2085458042082022,
+        "parents": [
+          {
+            "coef": 1.0073653395997944,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mailbox_controlled",
+        "intercept": -1.228443523084911,
+        "parents": [
+          {
+            "coef": 1.61759821680561,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "accept_payment_request",
+        "intercept": -1.8213422058343651,
+        "parents": [
+          {
+            "coef": 2.6829611805091482,
+            "lag": 0,
+            "node": "mailbox_controlled"
+          },
+          {
+            "coef": -2.3127947302090304,
+            "lag": 0,
+            "node": "oob_confirmation"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "payment_approved",
+        "intercept": -2.0940817710504107,
+        "parents": [
+          {
+            "coef": 3.769302523165241,
+            "lag": 0,
+            "node": "accept_payment_request"
+          },
+          {
+            "coef": -1.7435378748563417,
+            "lag": 0,
+            "node": "dual_approval"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "beneficiary_changed",
+        "intercept": -1.9983246201383813,
+        "parents": [
+          {
+            "coef": 3.5985141853587526,
+            "lag": 0,
+            "node": "payment_approved"
+          },
+          {
+            "coef": -1.208977385335034,
+            "lag": 0,
+            "node": "beneficiary_lock"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "fraudulent_transfer",
+        "intercept": -2.3575071074575766,
+        "parents": [
+          {
+            "coef": 3.952543759039686,
+            "lag": 0,
+            "node": "beneficiary_changed"
+          },
+          {
+            "coef": -0.9873416678344017,
+            "lag": 0,
+            "node": "payment_hold"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -1.7910637529778406,
+        "parents": [
+          {
+            "coef": 3.455169678438404,
+            "lag": 0,
+            "node": "fraudulent_transfer"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_technical_only": {
+    "baseline_controls": {
+      "beneficiary_lock": 0,
+      "dual_approval": 0,
+      "oob_confirmation": 0,
+      "payment_hold": 0
+    },
+    "name": "bec_payment",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.28456564124743566,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "oob_confirmation",
+        "intercept": -1.0105801980678712,
+        "parents": [
+          {
+            "coef": 1.5143726436220153,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "dual_approval",
+        "intercept": -0.8878922167067527,
+        "parents": [
+          {
+            "coef": 1.2049631402665155,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "beneficiary_lock",
+        "intercept": -0.9995992393205188,
+        "parents": [
+          {
+            "coef": 1.0091101803845333,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "payment_hold",
+        "intercept": -1.2085458042082022,
+        "parents": [
+          {
+            "coef": 1.0073653395997944,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mailbox_controlled",
+        "intercept": -1.228443523084911,
+        "parents": [
+          {
+            "coef": 1.61759821680561,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "fraudulent_transfer",
+        "intercept": -1.0433738219109694,
+        "parents": [
+          {
+            "coef": -0.5349426670794188,
+            "lag": 0,
+            "node": "payment_hold"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.011913813184066,
+        "parents": [
+          {
+            "coef": 4.401475462829656,
+            "lag": 0,
+            "node": "fraudulent_transfer"
+          },
+          {
+            "coef": 2.9722100308661887,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  }
+}

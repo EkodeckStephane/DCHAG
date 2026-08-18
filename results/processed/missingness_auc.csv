@@ -1,0 +1,6 @@
+metric,normalized_auc_over_0_to_0.5
+effect_mae,0.00457575
+brier,0.21552090453703698
+log_loss,0.621015307488693
+path_recall,0.868036224396326
+path_f1,0.8779288899325168

@@ -1,0 +1,11 @@
+Internal RQ,Hypothesis ID,Frozen hypothesis,Metric/evidence,Statistics/decision rule,Comparator,Endpoint status
+RQ1,H1a,One reference engine accepts all planned workflow configurations with no changes to core semantic code,Core semantic file hashes identical across contexts; config-only diff,Exact equality,Portability audit,Primary
+RQ1,H1b,DCHAG reconstructs active attack-state paths from complete simulator evidence with high agreement,"Node/edge path precision, recall, F1",Report estimate + 95% CI; no arbitrary superiority threshold,Technical attack-graph baseline; technical-only ablation,Primary
+RQ2,H2a,Interventional effect estimates track simulator-known control effects more closely than observational risk conditioning,Paired absolute effect error; bias,Paired bootstrap CI; permutation/Wilcoxon chosen after distribution diagnostics,Observational Bayesian/conditional baseline,Primary
+RQ2,H2b,Control ranking tracks simulator-known ranking,Kendall tau; Spearman rho; top-k agreement,Bootstrap CI,Risk-score baseline; attack-graph countermeasure heuristic,Primary
+RQ2,H2c,Selected controls incur lower ground-truth regret,Normalized regret,Paired bootstrap CI + effect size,Applicable baselines,Primary
+RQ3,H3a,Effect estimation degrades smoothly as evidence coverage decreases,Effect MAE vs missingness; slope/AUC of degradation curve,Bootstrap bands; trend model,Baselines + complete-evidence reference,Primary
+RQ3,H3b,Hidden confounding and structural misspecification expose identifiable failure boundaries,Effect bias; interval coverage; ranking degradation,Scenario-stratified CIs; no claim of invariance,Correct-spec DCHAG,Primary
+RQ4,H4a,Same core engine executes all planned contexts,Test pass; identical core hashes; no context-specific branch in evaluator,Exact audit,N/A,Primary
+RQ4,H4b,Performance remains interpretable across contexts without semantic redesign,Per-context effect error/ranking/path metrics,Random-effects or context-stratified summary if justified,Context-specific baselines,Secondary
+RQ4,H4c,Runtime/memory boundaries are characterized as graph/control count grows,Wall time; peak RSS; nodes/samples/controls,Median/IQR + scaling fit where appropriate,Technical-only and observational baselines,Secondary

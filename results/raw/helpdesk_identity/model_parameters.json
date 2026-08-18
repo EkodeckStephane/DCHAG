@@ -1,0 +1,749 @@
+{
+  "DCHAG_full": {
+    "baseline_controls": {
+      "manager_callback": 0,
+      "mfa_enforcement": 0,
+      "session_risk_block": 0,
+      "strong_verification": 0
+    },
+    "name": "helpdesk_identity",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.4016385230221007,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "strong_verification",
+        "intercept": -0.9835561719066115,
+        "parents": [
+          {
+            "coef": 1.397602791221648,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mfa_enforcement",
+        "intercept": -0.716293206727757,
+        "parents": [
+          {
+            "coef": 1.0381024760035102,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "manager_callback",
+        "intercept": -1.0893590925058165,
+        "parents": [
+          {
+            "coef": 1.1084825185325171,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "session_risk_block",
+        "intercept": -1.184093681759959,
+        "parents": [
+          {
+            "coef": 0.974012436983761,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_reset_request",
+        "intercept": -1.0095149915361017,
+        "parents": [
+          {
+            "coef": 1.5297746471612386,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_reset",
+        "intercept": -1.7083912032825654,
+        "parents": [
+          {
+            "coef": 2.4062852585778405,
+            "lag": 0,
+            "node": "malicious_reset_request"
+          },
+          {
+            "coef": -2.068793994176936,
+            "lag": 0,
+            "node": "strong_verification"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "reset_authorized",
+        "intercept": -2.4150371946090328,
+        "parents": [
+          {
+            "coef": 3.9584387487819095,
+            "lag": 0,
+            "node": "approve_reset"
+          },
+          {
+            "coef": -1.0989082658618052,
+            "lag": 0,
+            "node": "manager_callback"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "credential_compromised",
+        "intercept": -2.2041196324157317,
+        "parents": [
+          {
+            "coef": 3.760893371953904,
+            "lag": 0,
+            "node": "reset_authorized"
+          },
+          {
+            "coef": 2.410083536612579,
+            "lag": 1,
+            "node": "credential_compromised"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "privileged_access",
+        "intercept": -2.398436519924626,
+        "parents": [
+          {
+            "coef": 3.5005921895456593,
+            "lag": 0,
+            "node": "credential_compromised"
+          },
+          {
+            "coef": -1.997493907256343,
+            "lag": 0,
+            "node": "mfa_enforcement"
+          },
+          {
+            "coef": -0.9795327196658573,
+            "lag": 0,
+            "node": "session_risk_block"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.0257788710767746,
+        "parents": [
+          {
+            "coef": 4.247258255022918,
+            "lag": 0,
+            "node": "privileged_access"
+          },
+          {
+            "coef": 3.034405424029324,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_human": {
+    "baseline_controls": {
+      "manager_callback": 0,
+      "mfa_enforcement": 0,
+      "session_risk_block": 0,
+      "strong_verification": 0
+    },
+    "name": "helpdesk_identity",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.4016385230221007,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "strong_verification",
+        "intercept": -0.9835561719066115,
+        "parents": [
+          {
+            "coef": 1.397602791221648,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mfa_enforcement",
+        "intercept": -0.716293206727757,
+        "parents": [
+          {
+            "coef": 1.0381024760035102,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "manager_callback",
+        "intercept": -1.0893590925058165,
+        "parents": [
+          {
+            "coef": 1.1084825185325171,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "session_risk_block",
+        "intercept": -1.184093681759959,
+        "parents": [
+          {
+            "coef": 0.974012436983761,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_reset_request",
+        "intercept": -1.0095149915361017,
+        "parents": [
+          {
+            "coef": 1.5297746471612386,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "reset_authorized",
+        "intercept": -1.0383186662728885,
+        "parents": [
+          {
+            "coef": -0.489879007371695,
+            "lag": 0,
+            "node": "manager_callback"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "credential_compromised",
+        "intercept": -2.2041196324157317,
+        "parents": [
+          {
+            "coef": 3.760893371953904,
+            "lag": 0,
+            "node": "reset_authorized"
+          },
+          {
+            "coef": 2.410083536612579,
+            "lag": 1,
+            "node": "credential_compromised"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "privileged_access",
+        "intercept": -2.398436519924626,
+        "parents": [
+          {
+            "coef": 3.5005921895456593,
+            "lag": 0,
+            "node": "credential_compromised"
+          },
+          {
+            "coef": -1.997493907256343,
+            "lag": 0,
+            "node": "mfa_enforcement"
+          },
+          {
+            "coef": -0.9795327196658573,
+            "lag": 0,
+            "node": "session_risk_block"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.0257788710767746,
+        "parents": [
+          {
+            "coef": 4.247258255022918,
+            "lag": 0,
+            "node": "privileged_access"
+          },
+          {
+            "coef": 3.034405424029324,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_process": {
+    "baseline_controls": {
+      "manager_callback": 0,
+      "mfa_enforcement": 0,
+      "session_risk_block": 0,
+      "strong_verification": 0
+    },
+    "name": "helpdesk_identity",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.4016385230221007,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "strong_verification",
+        "intercept": -0.9835561719066115,
+        "parents": [
+          {
+            "coef": 1.397602791221648,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mfa_enforcement",
+        "intercept": -0.716293206727757,
+        "parents": [
+          {
+            "coef": 1.0381024760035102,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "manager_callback",
+        "intercept": -1.0893590925058165,
+        "parents": [
+          {
+            "coef": 1.1084825185325171,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "session_risk_block",
+        "intercept": -1.184093681759959,
+        "parents": [
+          {
+            "coef": 0.974012436983761,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_reset_request",
+        "intercept": -1.0095149915361017,
+        "parents": [
+          {
+            "coef": 1.5297746471612386,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_reset",
+        "intercept": -1.7083912032825654,
+        "parents": [
+          {
+            "coef": 2.4062852585778405,
+            "lag": 0,
+            "node": "malicious_reset_request"
+          },
+          {
+            "coef": -2.068793994176936,
+            "lag": 0,
+            "node": "strong_verification"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "credential_compromised",
+        "intercept": -1.005485469063627,
+        "parents": [
+          {
+            "coef": 1.6304284174471402,
+            "lag": 1,
+            "node": "credential_compromised"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "privileged_access",
+        "intercept": -2.398436519924626,
+        "parents": [
+          {
+            "coef": 3.5005921895456593,
+            "lag": 0,
+            "node": "credential_compromised"
+          },
+          {
+            "coef": -1.997493907256343,
+            "lag": 0,
+            "node": "mfa_enforcement"
+          },
+          {
+            "coef": -0.9795327196658573,
+            "lag": 0,
+            "node": "session_risk_block"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.0257788710767746,
+        "parents": [
+          {
+            "coef": 4.247258255022918,
+            "lag": 0,
+            "node": "privileged_access"
+          },
+          {
+            "coef": 3.034405424029324,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_no_temporal": {
+    "baseline_controls": {
+      "manager_callback": 0,
+      "mfa_enforcement": 0,
+      "session_risk_block": 0,
+      "strong_verification": 0
+    },
+    "name": "helpdesk_identity",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.4016385230221007,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "strong_verification",
+        "intercept": -0.9835561719066115,
+        "parents": [
+          {
+            "coef": 1.397602791221648,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mfa_enforcement",
+        "intercept": -0.716293206727757,
+        "parents": [
+          {
+            "coef": 1.0381024760035102,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "manager_callback",
+        "intercept": -1.0893590925058165,
+        "parents": [
+          {
+            "coef": 1.1084825185325171,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "session_risk_block",
+        "intercept": -1.184093681759959,
+        "parents": [
+          {
+            "coef": 0.974012436983761,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_reset_request",
+        "intercept": -1.0095149915361017,
+        "parents": [
+          {
+            "coef": 1.5297746471612386,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "approve_reset",
+        "intercept": -1.7083912032825654,
+        "parents": [
+          {
+            "coef": 2.4062852585778405,
+            "lag": 0,
+            "node": "malicious_reset_request"
+          },
+          {
+            "coef": -2.068793994176936,
+            "lag": 0,
+            "node": "strong_verification"
+          }
+        ],
+        "type": "human"
+      },
+      {
+        "id": "reset_authorized",
+        "intercept": -2.4150371946090328,
+        "parents": [
+          {
+            "coef": 3.9584387487819095,
+            "lag": 0,
+            "node": "approve_reset"
+          },
+          {
+            "coef": -1.0989082658618052,
+            "lag": 0,
+            "node": "manager_callback"
+          }
+        ],
+        "type": "process"
+      },
+      {
+        "id": "credential_compromised",
+        "intercept": -1.2780727710216813,
+        "parents": [
+          {
+            "coef": 3.1509108135312185,
+            "lag": 0,
+            "node": "reset_authorized"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "privileged_access",
+        "intercept": -2.398436519924626,
+        "parents": [
+          {
+            "coef": 3.5005921895456593,
+            "lag": 0,
+            "node": "credential_compromised"
+          },
+          {
+            "coef": -1.997493907256343,
+            "lag": 0,
+            "node": "mfa_enforcement"
+          },
+          {
+            "coef": -0.9795327196658573,
+            "lag": 0,
+            "node": "session_risk_block"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -1.9595862237411683,
+        "parents": [
+          {
+            "coef": 3.513154168716022,
+            "lag": 0,
+            "node": "privileged_access"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  },
+  "DCHAG_technical_only": {
+    "baseline_controls": {
+      "manager_callback": 0,
+      "mfa_enforcement": 0,
+      "session_risk_block": 0,
+      "strong_verification": 0
+    },
+    "name": "helpdesk_identity",
+    "nodes": [
+      {
+        "id": "high_risk_context",
+        "intercept": -0.4016385230221007,
+        "parents": [],
+        "type": "context"
+      },
+      {
+        "id": "strong_verification",
+        "intercept": -0.9835561719066115,
+        "parents": [
+          {
+            "coef": 1.397602791221648,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "mfa_enforcement",
+        "intercept": -0.716293206727757,
+        "parents": [
+          {
+            "coef": 1.0381024760035102,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "manager_callback",
+        "intercept": -1.0893590925058165,
+        "parents": [
+          {
+            "coef": 1.1084825185325171,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "session_risk_block",
+        "intercept": -1.184093681759959,
+        "parents": [
+          {
+            "coef": 0.974012436983761,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "control"
+      },
+      {
+        "id": "malicious_reset_request",
+        "intercept": -1.0095149915361017,
+        "parents": [
+          {
+            "coef": 1.5297746471612386,
+            "lag": 0,
+            "node": "high_risk_context"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "credential_compromised",
+        "intercept": -1.005485469063627,
+        "parents": [
+          {
+            "coef": 1.6304284174471402,
+            "lag": 1,
+            "node": "credential_compromised"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "privileged_access",
+        "intercept": -2.398436519924626,
+        "parents": [
+          {
+            "coef": 3.5005921895456593,
+            "lag": 0,
+            "node": "credential_compromised"
+          },
+          {
+            "coef": -1.997493907256343,
+            "lag": 0,
+            "node": "mfa_enforcement"
+          },
+          {
+            "coef": -0.9795327196658573,
+            "lag": 0,
+            "node": "session_risk_block"
+          }
+        ],
+        "type": "technical"
+      },
+      {
+        "id": "compromise",
+        "intercept": -3.0257788710767746,
+        "parents": [
+          {
+            "coef": 4.247258255022918,
+            "lag": 0,
+            "node": "privileged_access"
+          },
+          {
+            "coef": 3.034405424029324,
+            "lag": 1,
+            "node": "compromise"
+          }
+        ],
+        "type": "technical"
+      }
+    ],
+    "target": "compromise"
+  }
+}

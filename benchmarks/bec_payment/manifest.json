@@ -1,0 +1,37 @@
+{
+  "benchmark_version": "1.0",
+  "context": "bec_payment",
+  "controls": [
+    "oob_confirmation",
+    "dual_approval",
+    "beneficiary_lock",
+    "payment_hold"
+  ],
+  "estimator_allowed_files": [
+    "train_observed.csv",
+    "test_observed.csv",
+    "event_log.jsonl",
+    "manifest.json"
+  ],
+  "estimator_forbidden_files": [
+    "ground_truth/test_full.npz",
+    "ground_truth/intervention_effects.json"
+  ],
+  "estimator_topology_config": "configs/bec_payment.yaml",
+  "estimator_topology_sha256": "30b72697c25300217810112424cb9396bc0169fb3ca48e0d96a9836589a9f52d",
+  "files": {
+    "event_log.jsonl": "7fe498b024c44424a0cddaf2ccf67764f741ad200139e4c072db94b8ec4072d7",
+    "test_observed.csv": "cb031525a0d95b1815aee803069629457f86f28551408807cf0140ed1edf2d2e",
+    "train_observed.csv": "e2df32b8dae738d31b9e740bdf5833b05ad03af9b66df2037d2524e71fe46e30"
+  },
+  "ground_truth_pairs_per_control": 60000,
+  "ground_truth_seed": 30300,
+  "horizon": 4,
+  "target": "compromise",
+  "test_seed": 20200,
+  "test_trajectories": 3000,
+  "train_seed": 10100,
+  "train_trajectories": 12000,
+  "world_config_file": "simulator/world_configs/bec_payment.yaml",
+  "world_config_sha256": "5d067d3b13b956254fefc35406abddba6024de41d1604ad1be8f3a705625ba1c"
+}

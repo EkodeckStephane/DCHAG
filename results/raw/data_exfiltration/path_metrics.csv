@@ -1,0 +1,6 @@
+context,model,n_target_positive,precision,recall,f1
+data_exfiltration,DCHAG_full,877,1.0,1.0,1.0
+data_exfiltration,DCHAG_technical_only,877,1.0,0.6841090367886263,0.7859024479597183
+data_exfiltration,DCHAG_no_human,877,1.0,0.8294654904831643,0.8965583566959143
+data_exfiltration,DCHAG_no_process,877,1.0,0.6841090367886263,0.7859024479597183
+data_exfiltration,DCHAG_no_temporal,877,0.6875712656784493,0.5911372470808046,0.6166835837789624

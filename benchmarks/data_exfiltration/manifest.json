@@ -1,0 +1,37 @@
+{
+  "benchmark_version": "1.0",
+  "context": "data_exfiltration",
+  "controls": [
+    "separation_of_duties",
+    "dlp_enforcement",
+    "export_confirmation",
+    "egress_protection"
+  ],
+  "estimator_allowed_files": [
+    "train_observed.csv",
+    "test_observed.csv",
+    "event_log.jsonl",
+    "manifest.json"
+  ],
+  "estimator_forbidden_files": [
+    "ground_truth/test_full.npz",
+    "ground_truth/intervention_effects.json"
+  ],
+  "estimator_topology_config": "configs/data_exfiltration.yaml",
+  "estimator_topology_sha256": "9cfeeb1cb7228346bf5a2ce0d246084ce1f1ec49e0135bc217f32b242ca0e08f",
+  "files": {
+    "event_log.jsonl": "8edff63d9ca5085b62f6b95f71ec94bee3ed90044ba989345e1225d75884cbf5",
+    "test_observed.csv": "8e59c8ad7bfa402a64038b5ec502129165bd6b4bfce4db3048a020a0cfe1c469",
+    "train_observed.csv": "24afbaad5bfd072b09e568dad7841b149cac01aeea9af57656c9355be5ad3d2d"
+  },
+  "ground_truth_pairs_per_control": 60000,
+  "ground_truth_seed": 30301,
+  "horizon": 4,
+  "target": "compromise",
+  "test_seed": 20201,
+  "test_trajectories": 3000,
+  "train_seed": 10101,
+  "train_trajectories": 12000,
+  "world_config_file": "simulator/world_configs/data_exfiltration.yaml",
+  "world_config_sha256": "fa578cf7df0c6a82c46ba51705887bdfa66c8cdbdc544775c5f8fef3e0f0b19b"
+}

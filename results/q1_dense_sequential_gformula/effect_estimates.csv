@@ -1,0 +1,17 @@
+context,model,control,baseline_risk,intervention_risk,risk_reduction,n_trajectories,folds,mc_per_trajectory,fold_seed,simulation_seed_base
+bec_payment,CrossFittedDenseSequentialGFormula,oob_confirmation,0.5009541666666667,0.3871625,0.11379166666666667,12000,5,20,260817,811700
+bec_payment,CrossFittedDenseSequentialGFormula,dual_approval,0.5009541666666667,0.4008916666666667,0.10006249999999998,12000,5,20,260817,811700
+bec_payment,CrossFittedDenseSequentialGFormula,beneficiary_lock,0.5009541666666667,0.39921666666666666,0.10173750000000002,12000,5,20,260817,811700
+bec_payment,CrossFittedDenseSequentialGFormula,payment_hold,0.5009541666666667,0.39677500000000004,0.10417916666666667,12000,5,20,260817,811700
+data_exfiltration,CrossFittedDenseSequentialGFormula,separation_of_duties,0.49513333333333337,0.40969583333333337,0.0854375,12000,5,20,260817,811700
+data_exfiltration,CrossFittedDenseSequentialGFormula,dlp_enforcement,0.49513333333333337,0.24142083333333333,0.2537125,12000,5,20,260817,811700
+data_exfiltration,CrossFittedDenseSequentialGFormula,export_confirmation,0.49513333333333337,0.34060000000000007,0.15453333333333336,12000,5,20,260817,811700
+data_exfiltration,CrossFittedDenseSequentialGFormula,egress_protection,0.49513333333333337,0.35081666666666667,0.1443166666666667,12000,5,20,260817,811700
+helpdesk_identity,CrossFittedDenseSequentialGFormula,strong_verification,0.5374000000000001,0.41345833333333337,0.12394166666666667,12000,5,20,260817,811700
+helpdesk_identity,CrossFittedDenseSequentialGFormula,mfa_enforcement,0.5374000000000001,0.265925,0.27147499999999997,12000,5,20,260817,811700
+helpdesk_identity,CrossFittedDenseSequentialGFormula,manager_callback,0.5374000000000001,0.47015833333333334,0.06724166666666667,12000,5,20,260817,811700
+helpdesk_identity,CrossFittedDenseSequentialGFormula,session_risk_block,0.5374000000000001,0.4141958333333334,0.12320416666666667,12000,5,20,260817,811700
+it_ot_maintenance,CrossFittedDenseSequentialGFormula,change_validation,0.5027083333333333,0.39596250000000005,0.10674583333333332,12000,5,20,260817,811700
+it_ot_maintenance,CrossFittedDenseSequentialGFormula,jump_host_enforcement,0.5027083333333333,0.361425,0.14128333333333332,12000,5,20,260817,811700
+it_ot_maintenance,CrossFittedDenseSequentialGFormula,signed_change_package,0.5027083333333333,0.3653166666666667,0.13739166666666666,12000,5,20,260817,811700
+it_ot_maintenance,CrossFittedDenseSequentialGFormula,command_allowlist,0.5027083333333333,0.3937291666666667,0.10897916666666667,12000,5,20,260817,811700
