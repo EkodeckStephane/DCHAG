@@ -42,6 +42,8 @@ ScaledFull is 4.10% worse than FixedFull and 5.80% worse than SelfLag on the mea
 
 Therefore no predictive cross-channel benefit is supported for corrected person-associated login activity. This negative endpoint must be retained.
 
+A further audit of the 15 confirmatory folds shows that the L1 screen selected **no H parent in 15/15 folds**. Every ScaledFull H model therefore invoked the inherited hardened-v2 mutual-information fallback, which forces one parent when L1 selects none. The resulting H parent was `P_process[t-1]` in 10 folds and `H_person_login[t-1]` in 5 folds. Thus the displayed H edge is not evidence that sparse L1 structure selection found a robust cross-channel H dependency; it is a fallback artifact by construction. This reinforces, rather than weakens, the negative H conclusion.
+
 ### P_process
 
 Mean day-level Brier:
@@ -51,6 +53,8 @@ Mean day-level Brier:
 - SelfLag: 0.00154888.
 
 ScaledFull beats SelfLag on all three confirmatory days, with a small mean Brier advantage of about 0.266%. It is about 0.310% worse than FixedFull. Thus the sparse candidate retains a small but consistent cross-channel predictive advantage over the self-lag comparator for P, while sacrificing little relative to the saturated model.
+
+For P, the L1-selected self edge `P_process[t-1] -> P_process[t]` occurs in all 15 folds; `T_network[t-1] -> P_process[t]` occurs in 7/15 folds. No fallback is used for P.
 
 ### T_network
 
@@ -62,6 +66,8 @@ Mean day-level Brier:
 
 ScaledFull beats SelfLag on all three confirmatory days and reduces mean Brier by about 10.33% relative to SelfLag. Its mean degradation versus FixedFull is only about 0.00555%. This is the strongest confirmatory predictive endpoint.
 
+For T, both `P_process[t-1] -> T_network[t]` and `T_network[t-1] -> T_network[t]` are selected in all 15 folds, with no fallback. This is the most stable nontrivial observational dependency pattern in the confirmatory analysis.
+
 ## Structural recurrence across 15 confirmatory folds
 
 ScaledFull selects three edges in all 15 confirmatory folds:
@@ -72,9 +78,11 @@ ScaledFull selects three edges in all 15 confirmatory folds:
 
 Other recurrence frequencies are:
 
-- `P_process[t-1] -> H_person_login[t]`: 10/15;
+- `P_process[t-1] -> H_person_login[t]`: 10/15, but only through H fallback;
 - `T_network[t-1] -> P_process[t]`: 7/15;
-- `H_person_login[t-1] -> H_person_login[t]`: 5/15.
+- `H_person_login[t-1] -> H_person_login[t]`: 5/15, but only through H fallback.
+
+All recorded main-effect signs for selected ScaledFull edges are positive. Sign consistency is therefore 100% conditional on selection across these 15 folds. This sign stability is descriptive only and must not be interpreted as causal direction or monotonic intervention effect.
 
 No H-originating cross-channel edge survives the candidate selector across the confirmatory folds.
 
@@ -84,6 +92,6 @@ These are observational lagged dependencies only. Frequency must not be interpre
 
 Outcome: **MIXED / PARTIAL SUPPORT**.
 
-The unseen-day validation supports the sample-size-scaled selector as a substantially sparser observational lagged-dependency mechanism that preserves useful P/T predictive structure across consecutive operational days. It does not support a general claim that the sparse DCHAG mechanism improves all typed channels: the corrected H_person_login endpoint fails against SelfLag.
+The unseen-day validation supports the sample-size-scaled selector as a substantially sparser observational lagged-dependency mechanism that preserves useful P/T predictive structure across consecutive operational days. It does not support a general claim that the sparse DCHAG mechanism improves all typed channels: the corrected H_person_login endpoint fails against SelfLag, and its single retained parent per fold is entirely due to the mandatory fallback rule.
 
-Accordingly, `ScaledFull` may be carried forward in v3 as a **scale-aware observational structure candidate**, not as a universally validated replacement for the hardened-v2 selector and not as a causal structure estimator. Human-channel modeling requires a separate treatment rather than forcing the P/T result onto H.
+Accordingly, `ScaledFull` may be carried forward in v3 as a **scale-aware observational structure candidate for P/T**, not as a universally validated replacement for the hardened-v2 selector and not as a causal structure estimator. Human-channel modeling requires a separate treatment rather than forcing the P/T result onto H.
