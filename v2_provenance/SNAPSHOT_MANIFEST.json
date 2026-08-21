@@ -37,7 +37,11 @@
   "verification": {
     "workflow": ".github/workflows/dchag-v2-provenance-verify.yml",
     "required_check": "all seven repository files must match the source_snapshot SHA-256 manifest and archived Python sources must compile",
-    "status": "pending GitHub Actions verification at the commit carrying this manifest"
+    "status": "PASS",
+    "successful_run_id": 32525658719,
+    "successful_job_id": 96907007726,
+    "audit": "v2_provenance/PROVENANCE_AUDIT.md",
+    "failed_predecessor_run_retained": 32525439773
   },
   "claim_boundary": "This branch is a provenance archive. It does not itself promote new v3 results."
 }
