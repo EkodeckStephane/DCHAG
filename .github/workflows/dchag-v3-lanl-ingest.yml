@@ -1,0 +1,84 @@
+name: DCHAG v3 LANL day-02 ingestion
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - 'experiments/v3/01_external_datasets/**'
+      - '.github/workflows/dchag-v3-lanl-ingest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lanl-ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependency
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Run frozen LANL adapter and ingestion tests
+        working-directory: experiments/v3/01_external_datasets
+        run: python -m pytest -q test_lanl_adapter.py test_run_lanl_ingest.py
+
+      - name: Download frozen LANL day-02 host stream
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          curl -L --fail --retry 4 --retry-all-errors --connect-timeout 30 \
+            -o wls_day-02.bz2 \
+            https://lanl.ma.ic.ac.uk/data/2017/wls/wls_day-02.bz2
+
+      - name: Download frozen LANL day-02 netflow stream
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          curl -L --fail --retry 4 --retry-all-errors --connect-timeout 30 \
+            -o netflow_day-02.bz2 \
+            https://lanl.ma.ic.ac.uk/data/2017/netflow/netflow_day-02.bz2
+
+      - name: Record compressed source integrity
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          stat --printf='%n %s bytes\n' wls_day-02.bz2 netflow_day-02.bz2
+          sha256sum wls_day-02.bz2 netflow_day-02.bz2
+
+      - name: Execute frozen day-02 ingestion
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          python run_lanl_ingest.py \
+            --host wls_day-02.bz2 \
+            --network netflow_day-02.bz2 \
+            --output LANL_INGEST_RESULTS.json
+
+      - name: Validate guardrails in retained result
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('LANL_INGEST_RESULTS.json', encoding='utf-8'))
+          assert r['status'] == 'PASS'
+          assert r['guardrails']['attack_or_red_team_labels_read'] is False
+          assert r['guardrails']['defensive_intervention_C_inferred'] is False
+          assert r['guardrails']['counterfactual_effect_claim'] is False
+          assert r['host']['parsed_records'] > 0
+          assert r['network']['parsed_records'] > 0
+          assert 'C' not in r['combined']['emitted']
+          PY
+
+      - name: Upload aggregate result only
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-lanl-day02-results
+          path: experiments/v3/01_external_datasets/LANL_INGEST_RESULTS.json
+          if-no-files-found: error
+          retention-days: 90
