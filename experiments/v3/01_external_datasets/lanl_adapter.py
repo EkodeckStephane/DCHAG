@@ -6,6 +6,7 @@ intervention truth are read or inferred.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+import re
 from typing import Any, Mapping, Sequence
 
 AUTH_SESSION_EVENT_IDS = {
@@ -15,6 +16,13 @@ AUTH_SESSION_EVENT_IDS = {
 }
 PROCESS_EVENT_IDS = {4688, 4689}
 SYSTEM_EVENT_IDS = {4608, 4609, 1100}
+
+# In the released Unified Host/Network data, examples of de-identified person
+# accounts use User<digits>. LANL explicitly states that names ending in '$'
+# are computer accounts and that some system-level non-person accounts remain
+# recognizable. H evidence is therefore restricted to the de-identified user
+# namespace rather than treating every nonempty UserName as human evidence.
+DEIDENTIFIED_PERSON_ACCOUNT = re.compile(r"^User\d+$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -50,6 +58,10 @@ def _time(record: Mapping[str, Any]) -> int:
     return int(value)
 
 
+def _is_deidentified_person_account(user: str | None) -> bool:
+    return bool(user and DEIDENTIFIED_PERSON_ACCOUNT.fullmatch(user))
+
+
 def map_host_event(event: Mapping[str, Any]) -> list[LanlObservation]:
     ts = _time(event)
     try:
@@ -73,8 +85,14 @@ def map_host_event(event: Mapping[str, Any]) -> list[LanlObservation]:
     )
 
     out: list[LanlObservation] = []
-    if user is not None and (event_id in AUTH_SESSION_EVENT_IDS or event_id in PROCESS_EVENT_IDS):
-        out.append(LanlObservation(dchag_type="H", evidence_role="user_associated_action", **base))
+    if _is_deidentified_person_account(user) and (
+        event_id in AUTH_SESSION_EVENT_IDS or event_id in PROCESS_EVENT_IDS
+    ):
+        out.append(LanlObservation(
+            dchag_type="H",
+            evidence_role="deidentified_person_account_action",
+            **base,
+        ))
 
     if event_id in PROCESS_EVENT_IDS:
         out.append(LanlObservation(dchag_type="P", evidence_role="process_transition", **base))
