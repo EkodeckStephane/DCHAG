@@ -1,0 +1,66 @@
+{
+  "artifact_id": 9455737789,
+  "artifact_zip_sha256": "9eba05f34eac84de1474fdbc7a788b31c1721383ae08a4e7f5067a8703952ce1",
+  "diagnostic_status": "PASS",
+  "experiment_id": "V3-LANL-REGSCALE-001",
+  "fixed_reference": {
+    "C": 0.05,
+    "mean_selected_edges": 9.0,
+    "selected_edge_count_by_fold": [9, 9, 9, 9, 9]
+  },
+  "matched6400": {
+    "mean_selected_edges": 5.2,
+    "selected_edge_count_by_fold": [5, 5, 6, 4, 6],
+    "out_of_fold_brier": {
+      "H_login": 0.03720786878048604,
+      "P_process": 0.008407488056787298,
+      "T_network": 0.11736247852219417
+    },
+    "absolute_brier_delta_vs_fixed": {
+      "H_login": 0.00010619174237591622,
+      "P_process": 0.00020918011798081414,
+      "T_network": 0.000024234086366314855
+    },
+    "relative_brier_increase_percent": {
+      "H_login": 0.2862181735527429,
+      "P_process": 2.5515035485635433,
+      "T_network": 0.020653186420876143
+    }
+  },
+  "scaled_full": {
+    "rule": "C_scaled = 0.05 * 6400 / n_train_transitions",
+    "C_by_fold": [
+      0.00007105426769695355,
+      0.0000713193636529778,
+      0.00007154899093563722,
+      0.00007121651154820246,
+      0.00007050477008835128
+    ],
+    "mean_selected_edges": 5.6,
+    "selected_edge_count_by_fold": [6, 5, 5, 6, 6],
+    "out_of_fold_brier": {
+      "H_login": 0.03710429392785197,
+      "P_process": 0.00840456526742521,
+      "T_network": 0.11736247852219417
+    },
+    "absolute_brier_delta_vs_fixed": {
+      "H_login": 0.0000026168897418465953,
+      "P_process": 0.0002062573286187256,
+      "T_network": 0.000024234086366314855
+    },
+    "relative_brier_increase_percent": {
+      "H_login": 0.007053292332738967,
+      "P_process": 2.5158524192829077,
+      "T_network": 0.020653186420876143
+    }
+  },
+  "common_structural_pattern": "Both pre-frozen scale diagnostics remove much of the saturated graph. P_process[t-1]→H_login/P_process/T_network and T_network[t-1]→T_network are selected in all five folds by both diagnostics; H_login[t-1]→P_process/T_network and T_network[t-1]→H_login disappear in all folds under both.",
+  "result_json_sha256": "3d75fb360a63f0cc303c5aa998102cac7c5db6b666288a5cadce8f6ad475e34c",
+  "scientific_interpretation": "The sample-size-portability diagnosis is supported: two independently pre-frozen scale controls reduce mean selected edges from 9.0 to 5.6 and 5.2. This does not validate either as the new DCHAG selector. ScaledFull is suitable for a later unseen-data validation because its rule is sample-size-derived and uses all training data, but adoption requires a separately frozen experiment.",
+  "workflow_run_id": 32507337989,
+  "guardrails": {
+    "parent_V3_LANL_STRUCT_001_rewritten": false,
+    "variant_selected_by_LANL_performance": false,
+    "causal_claim": false
+  }
+}
