@@ -1,0 +1,74 @@
+name: DCHAG v3 LANL regularization-scale diagnostic
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - 'experiments/v3/03_transportability/**'
+      - '.github/workflows/dchag-v3-lanl-regscale.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  lanl-regscale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas scikit-learn pytest
+
+      - name: Run pre-data diagnostic tests
+        working-directory: experiments/v3/03_transportability
+        run: python -m pytest -q test_run_lanl_structure.py test_run_lanl_regscale.py
+
+      - name: Retrieve immutable LANL trajectory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p input
+          gh run download 32498616088 --repo "$GITHUB_REPOSITORY" --name dchag-v3-lanl-trajectory-300s --dir input
+
+      - name: Verify trajectory SHA-256
+        run: |
+          test "$(sha256sum input/LANL_TRAJECTORY_300S.csv.gz | awk '{print $1}')" = "6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22"
+
+      - name: Execute frozen regularization-scale diagnostic
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python run_lanl_regscale.py \
+            --trajectory "$GITHUB_WORKSPACE/input/LANL_TRAJECTORY_300S.csv.gz" \
+            --output LANL_REGSCALE_RESULTS.json
+
+      - name: Validate diagnostic guardrails
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('LANL_REGSCALE_RESULTS.json',encoding='utf-8'))
+          assert r['status']=='PASS'
+          assert r['diagnostic_only'] is True
+          assert r['reference']['v2_confirmatory_median_train_rows']==6400
+          assert r['guardrails']['variant_selected_by_LANL_performance'] is False
+          assert r['guardrails']['parent_experiment_rewritten'] is False
+          assert all(x==9 for x in r['aggregate']['FixedFull']['selected_edge_count_by_fold'])
+          PY
+
+      - name: Upload diagnostic result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-lanl-regscale-results
+          path: experiments/v3/03_transportability/LANL_REGSCALE_RESULTS.json
+          if-no-files-found: error
+          retention-days: 90
