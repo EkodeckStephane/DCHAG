@@ -1,0 +1,23 @@
+{
+  "source_snapshot": "DCHAG_GitHub_V2_FULL.zip",
+  "source_snapshot_sha256": "d821d3f6e5a6f73efd7935f0cc2223f55e029b1730edb1fbfd8bfc2d0b7dace3",
+  "purpose": "Preserve the hardened v2 learned-structure validation engine and its frozen protocol separately from the stale public pre-v2 main branch.",
+  "source_files": {
+    "adversarial_validation/common.py": "a3310b65d59b72cc0ee5a9c09f5b4909e75a84fc37072cc5b230cc438120ce09",
+    "adversarial_validation/estimate_validation_v2.py": "c3eed21e3606cb71c55e4c954c9dd8bcb9462e2df0dd58845da98e56800bfba7",
+    "adversarial_validation/generate_validation_v2.py": "d67b74b58a58c0a35c4beb5df7576129b0841858ea04b82a95d5bc0309dbc473",
+    "adversarial_validation/score_validation_v2.py": "32f2f427a430680a2957378d63c866ef74f21e62726174e04815dc84bf909037",
+    "experiments/validation_v2/FROZEN_HYPERPARAMETERS.json": "c689ad1c68a4c7691d25a98561cdc7fc852a4ec2a49fb295fe920eaa83c1d779",
+    "experiments/validation_v2/FROZEN_PROTOCOL_v2.md": "f8d8e53fb5f0c901af89e8f1c880cc22568bfa6fc029b77edcd3dfd8f1ddfe9d",
+    "experiments/validation_v2/PROTOCOL_AMENDMENT_v2_1.md": "681244f3a102816231bfef37018f8de4d6f88165db4cd815512bb295bc5d1918"
+  },
+  "frozen_confirmatory_estimator": {
+    "max_parents": 10,
+    "screening": "L1 logistic conditional screening",
+    "screening_C": 0.05,
+    "local_model": "logistic main effects plus all selected pairwise interactions",
+    "local_model_C": 0.7,
+    "dense_baseline": "HistGradientBoostingClassifier over all temporally admissible observed history"
+  },
+  "claim_boundary": "This branch is a provenance archive. It does not itself promote new v3 results."
+}
