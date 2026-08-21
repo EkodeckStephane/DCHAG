@@ -1,0 +1,34 @@
+{
+  "active_device_window_rows": 2642689,
+  "correction_reason": "Frozen protocol required longest consecutive active-window run per device; the original aggregate script retained active-window counts but omitted this continuity endpoint. This correction is computed from the immutable retained 300-s trajectory artifact without altering the parent run.",
+  "experiment_id": "V3-LANL-TRAJ-001-C1",
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "counterfactual_effect_claim": false,
+    "defensive_intervention_C_inferred": false
+  },
+  "longest_consecutive_active_windows_per_device": {
+    "max": 181,
+    "median": 7.0,
+    "min": 1,
+    "p90": 181.0,
+    "p95": 181.0,
+    "p99": 181.0
+  },
+  "parent_experiment_id": "V3-LANL-TRAJ-001",
+  "source_artifact_id": 9453590911,
+  "source_artifact_zip_sha256": "d6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b",
+  "source_trajectory_member": "LANL_TRAJECTORY_300S.csv.gz",
+  "source_trajectory_member_sha256": "6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22",
+  "source_workflow_run_id": 32498616088,
+  "threshold_counts": {
+    "all_181_windows": 4274,
+    "at_least_10_windows": 15280,
+    "at_least_30_windows": 11300,
+    "at_least_90_windows": 9512
+  },
+  "unique_devices": 31243,
+  "window_index_max": 180,
+  "window_index_min": 0,
+  "window_width_seconds": 300
+}
