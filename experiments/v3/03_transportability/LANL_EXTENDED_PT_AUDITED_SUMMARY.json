@@ -1,0 +1,94 @@
+{
+  "experiment_id": "V3-LANL-PT-EXT-001",
+  "audit_status": "PASS",
+  "workflow": {
+    "run_id": 32514587724,
+    "head_sha": "f455baef10f6b0c298dc252117aa34a63614d9f3"
+  },
+  "confirmatory_artifact": {
+    "artifact_id": 9459249907,
+    "zip_sha256": "359666281273e3d2771b5dbb47955e920eff0b056c93080bc06af8558bd2afb2",
+    "member": "LANL_EXTENDED_PT_CONFIRMATORY_SUMMARY.json",
+    "member_sha256": "f3f90c07731dd894d5121e78580833744ad0570a6f73d7d5a0c81399e6e44051"
+  },
+  "per_day_artifact_zip_sha256": {
+    "06": "cd7734eae1cbc3c94b95c6a774e407d1fd0923615f13f9bb491a849fe5ef1653",
+    "07": "ef6120b1954ec63813a30041d8348eb048d79b947362f54987e0f32dfd29e769",
+    "08": "e31fbeb8cae92243d02ece6856d9fb9115dbe1c19e4a73ac271e6783fa1f795c",
+    "09": "06d66631393328c972b1c64030f6732350078e03566bb86b9ed55e9f1e8b7480",
+    "10": "2ab13214d72ff8ad33d8e2c4e96629654f5df012944b8c4269b94b6f2da32ace"
+  },
+  "per_day_member_sha256": {
+    "06": "fb9f10320b1f47e44863f340a4cf99ea2b1aa67c65636938b436c0018041d39d",
+    "07": "5d9712f26edf8cfcfe9834ca1770f8d6f1ffedc8970fd0cff735a719a09894d3",
+    "08": "5a1445b95819768c42330d2c76667b83b63a541699943908adb6906d6a127d97",
+    "09": "ce27c161afee34ec6aa7f7e9232a215daa93302fd34ddbdf9cacb32bff5a6718",
+    "10": "be3b17b733bab078eb9cb6c32c457cd711e584be9be7af614d664e964f7472cb"
+  },
+  "independent_reaggregation_check": "PASS",
+  "criteria": {
+    "C1_sparsity_5_of_5": true,
+    "C2_P_beats_SelfLag_at_least_4_of_5": true,
+    "C3_T_beats_SelfLag_at_least_4_of_5": true,
+    "C4_core_edges_at_least_20_of_25": true,
+    "all_primary_criteria_pass": true
+  },
+  "density": {
+    "FixedFull_day_mean_edges": [9.0, 9.0, 9.0, 9.0, 9.0],
+    "ScaledFull_day_mean_edges": [4.0, 4.0, 5.0, 5.0, 5.0],
+    "FixedFull_mean_across_days": 9.0,
+    "ScaledFull_mean_across_days": 4.6,
+    "Scaled_to_Fixed_density_ratio": 0.5111111111111111,
+    "edge_reduction_fraction": 0.4888888888888889
+  },
+  "predictive_wins_vs_SelfLag": {
+    "H_person_login": 2,
+    "P_process": 5,
+    "T_network": 5
+  },
+  "mean_relative_brier_improvement_fraction": {
+    "H_person_login": -0.050311964351498695,
+    "P_process": 0.0033598865207810463,
+    "T_network": 0.10260946932052494
+  },
+  "H_person_login_fallback_count_across_25_folds": 25,
+  "scaled_edge_frequency_across_25_folds": {
+    "H_person_login[t-1]->H_person_login[t]": 10,
+    "P_process[t-1]->H_person_login[t]": 15,
+    "P_process[t-1]->P_process[t]": 25,
+    "P_process[t-1]->T_network[t]": 25,
+    "T_network[t-1]->P_process[t]": 15,
+    "T_network[t-1]->T_network[t]": 25
+  },
+  "core_edge_sign_recurrence": {
+    "P_process[t-1]->P_process[t]": {"positive": 25, "negative": 0},
+    "P_process[t-1]->T_network[t]": {"positive": 25, "negative": 0},
+    "T_network[t-1]->T_network[t]": {"positive": 25, "negative": 0}
+  },
+  "totals_days_06_10": {
+    "parsed_host_records": 298351913,
+    "parsed_network_records": 1033576592,
+    "person_login_events": 27694727,
+    "excluded_nonperson_login_events": 49691852,
+    "active_device_windows": 21018973,
+    "malformed_host_records": 0,
+    "malformed_network_records": 0
+  },
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "defensive_intervention_C_inferred": false,
+    "counterfactual_effect_claim": false,
+    "same_window_edges_allowed": false,
+    "per_day_hyperparameter_tuning": false,
+    "posthoc_day_selection": false,
+    "H_repair_performed": false,
+    "causal_edge_claim": false
+  },
+  "interpretation": {
+    "T_network": "Strongest external result: 5/5 wins versus SelfLag and about 10.26% mean relative Brier improvement.",
+    "P_process": "Directionally consistent on 5/5 days but modest overall (about 0.336% mean relative Brier improvement); days 06-07 are numerically near-zero gains.",
+    "H_person_login": "Secondary endpoint only: 2/5 wins and inherited fallback used in 25/25 folds; H-related selected edges are not robust transportability evidence.",
+    "structure": "Three P/T lagged dependencies recur in 25/25 folds with positive fitted signs; this is observational recurrence, not causal direction."
+  },
+  "claim_boundary": "Extended temporal observational transportability of sparse P/T lagged dependencies and predictive behavior only; no causal identification, intervention effect, attacker intent, or control-effectiveness claim."
+}
