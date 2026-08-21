@@ -97,3 +97,5 @@ def test_run_day_guardrails(tmp_path):
     assert r["guardrails"]["attack_or_red_team_labels_read"] is False
     assert r["guardrails"]["same_window_edges_allowed"] is False
     assert r["diagnostics"]["host"]["excluded_nonperson_login_events"] >= 2
+
+# Execution-trigger comment only; scientific test semantics are unchanged.
