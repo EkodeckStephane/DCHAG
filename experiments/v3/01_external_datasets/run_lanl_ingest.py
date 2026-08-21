@@ -9,7 +9,6 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Iterable
 
 from lanl_adapter import map_host_event, map_network_flow
 
@@ -196,21 +195,15 @@ def ingest_network(path: Path) -> tuple[dict, set[str]]:
     return stats, network_devices
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", required=True, type=Path)
-    parser.add_argument("--network", required=True, type=Path)
-    parser.add_argument("--output", default="LANL_INGEST_RESULTS.json", type=Path)
-    args = parser.parse_args()
-
-    host_stats, host_devices = ingest_host(args.host)
-    network_stats, network_devices = ingest_network(args.network)
+def build_result(host_path: Path, network_path: Path) -> dict:
+    host_stats, host_devices = ingest_host(host_path)
+    network_stats, network_devices = ingest_network(network_path)
     overlap = host_devices & network_devices
     union = host_devices | network_devices
 
     emitted_total = Counter(host_stats["emitted"]) + Counter(network_stats["emitted"])
     total_obs = sum(emitted_total.values())
-    result = {
+    return {
         "experiment_id": "V3-LANL-INGEST-001",
         "status": "PASS",
         "claim_boundary": "observational ingestibility, typed coverage, temporal/linkage feasibility only",
@@ -227,11 +220,21 @@ def main() -> None:
             "host_network_device_jaccard": len(overlap) / len(union) if union else None,
         },
         "guardrails": {
-            "attack_or_red_team_labels_read": false,
-            "defensive_intervention_C_inferred": false,
-            "counterfactual_effect_claim": false
-        }
+            "attack_or_red_team_labels_read": False,
+            "defensive_intervention_C_inferred": False,
+            "counterfactual_effect_claim": False,
+        },
     }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", required=True, type=Path)
+    parser.add_argument("--network", required=True, type=Path)
+    parser.add_argument("--output", default="LANL_INGEST_RESULTS.json", type=Path)
+    args = parser.parse_args()
+
+    result = build_result(args.host, args.network)
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
 
