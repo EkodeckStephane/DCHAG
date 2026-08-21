@@ -1,0 +1,94 @@
+name: DCHAG v3 semisynthetic development
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - 'experiments/v3/02_semisynthetic/**'
+      - '.github/workflows/dchag-v3-semisynthetic-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  semisynthetic-development:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas pytest
+
+      - name: Run frozen builder tests
+        run: pytest -q experiments/v3/02_semisynthetic/test_build_semisynthetic_oracle.py
+
+      - name: Download immutable LANL 300s parent artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dchag-lanl
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9453590911/zip" \
+            -o /tmp/dchag-lanl/parent.zip
+          echo 'd6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b  /tmp/dchag-lanl/parent.zip' | sha256sum -c -
+          unzip -q /tmp/dchag-lanl/parent.zip -d /tmp/dchag-lanl/data
+          echo '6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22  /tmp/dchag-lanl/data/LANL_TRAJECTORY_300S.csv.gz' | sha256sum -c -
+
+      - name: Build Stage A only
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-semisynthetic-dev
+          python experiments/v3/02_semisynthetic/build_semisynthetic_oracle.py \
+            --trajectory /tmp/dchag-lanl/data/LANL_TRAJECTORY_300S.csv.gz \
+            --outdir /tmp/dchag-semisynthetic-dev \
+            --stage development \
+            --oracle-reps 30
+
+      - name: Validate development guardrails and diagnostics
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          p=Path('/tmp/dchag-semisynthetic-dev/SEMISYNTHETIC_DEVELOPMENT_BUILD_SUMMARY.json')
+          x=json.loads(p.read_text())
+          assert x['stage']=='development'
+          assert x['trajectory_sha256']=='6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22'
+          assert x['unique_source_devices']==31243
+          assert len(x['worlds'])==4
+          assert x['devices_per_world']==1500 and x['train_units_per_world']==1100 and x['test_units_per_world']==400
+          assert not x['guardrails']['attack_or_red_team_labels_read']
+          assert not x['guardrails']['LANL_defensive_intervention_inferred']
+          assert not x['guardrails']['real_anchor_treated_as_causal_truth']
+          assert not x['guardrails']['hidden_confounder_present']
+          for wid,w in x['worlds'].items():
+              assert w['train_rows']==6600 and w['test_rows']==2400
+              assert w['true_edge_count']>=50
+              assert 0.001 < w['train_prevalence']['Y'] < 0.60
+              for c in ['C1','C2','C3','C4']:
+                  assert 0.05 < w['train_prevalence'][c] < 0.95
+                  q=w['oracle_effects'][c]
+                  assert q['mc_reps_per_anchor']==30 and q['anchor_units']==1500
+                  assert math.isfinite(q['risk_reduction']) and math.isfinite(q['oracle_se_across_anchor_units'])
+          print('SEMISYNTHETIC_DEV_GUARDRAILS=PASS')
+          PY
+
+      - name: Upload frozen Stage A artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-development
+          path: /tmp/dchag-semisynthetic-dev/
+          retention-days: 90
+          if-no-files-found: error
