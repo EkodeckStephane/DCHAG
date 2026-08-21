@@ -1,0 +1,143 @@
+name: DCHAG v3 LANL extended P/T validation
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - 'experiments/v3/03_transportability/LANL_EXTENDED_PT_PROTOCOL.md'
+      - 'experiments/v3/03_transportability/run_lanl_multiday_validation.py'
+      - 'experiments/v3/03_transportability/aggregate_lanl_extended_pt.py'
+      - '.github/workflows/dchag-v3-lanl-extended-pt.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-day:
+    strategy:
+      fail-fast: false
+      matrix:
+        day: ['06','07','08','09','10']
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: python -m pip install --disable-pip-version-check numpy scikit-learn pytest
+
+      - name: Run pre-data regression tests
+        working-directory: experiments/v3/03_transportability
+        run: python -m pytest -q test_run_lanl_multiday_validation.py
+
+      - name: Download frozen LANL sources
+        working-directory: experiments/v3/03_transportability
+        run: |
+          DAY=${{ matrix.day }}
+          curl -L --fail --retry 4 --retry-all-errors --connect-timeout 30 \
+            -o wls_day-${DAY}.bz2 https://lanl.ma.ic.ac.uk/data/2017/wls/wls_day-${DAY}.bz2
+          curl -L --fail --retry 4 --retry-all-errors --connect-timeout 30 \
+            -o netflow_day-${DAY}.bz2 https://lanl.ma.ic.ac.uk/data/2017/netflow/netflow_day-${DAY}.bz2
+          sha256sum wls_day-${DAY}.bz2 netflow_day-${DAY}.bz2
+
+      - name: Execute frozen per-day validation
+        working-directory: experiments/v3/03_transportability
+        run: |
+          DAY=${{ matrix.day }}
+          DAYNUM=$((10#${DAY}))
+          python run_lanl_multiday_validation.py \
+            --day ${DAYNUM} \
+            --host wls_day-${DAY}.bz2 \
+            --network netflow_day-${DAY}.bz2 \
+            --output LANL_EXTENDED_PT_DAY-${DAY}.json
+
+      - name: Validate per-day guardrails
+        working-directory: experiments/v3/03_transportability
+        run: |
+          DAY=${{ matrix.day }}
+          python - <<PY
+          import json
+          r=json.load(open('LANL_EXTENDED_PT_DAY-${DAY}.json', encoding='utf-8'))
+          assert r['status']=='PASS'
+          assert r['guardrails']['attack_or_red_team_labels_read'] is False
+          assert r['guardrails']['defensive_intervention_C_inferred'] is False
+          assert r['guardrails']['counterfactual_effect_claim'] is False
+          assert r['guardrails']['same_window_edges_allowed'] is False
+          assert r['guardrails']['lanl_hyperparameter_tuning_performed'] is False
+          assert r['diagnostics']['host']['malformed'] == 0
+          assert r['diagnostics']['network']['malformed'] == 0
+          assert r['diagnostics']['n_windows'] >= 2
+          assert int(r['day']) == int('${{ matrix.day }}')
+          PY
+
+      - name: Upload per-day aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-lanl-extended-pt-day-${{ matrix.day }}
+          path: experiments/v3/03_transportability/LANL_EXTENDED_PT_DAY-${{ matrix.day }}.json
+          if-no-files-found: error
+          retention-days: 90
+
+  aggregate-confirmatory:
+    needs: validate-day
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install aggregate dependency
+        run: python -m pip install --disable-pip-version-check numpy
+
+      - name: Download all day results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-lanl-extended-pt-day-*
+          path: extended-results
+          merge-multiple: true
+
+      - name: Aggregate only after all five jobs succeed
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python aggregate_lanl_extended_pt.py \
+            --inputs ../../../extended-results/LANL_EXTENDED_PT_DAY-06.json \
+                     ../../../extended-results/LANL_EXTENDED_PT_DAY-07.json \
+                     ../../../extended-results/LANL_EXTENDED_PT_DAY-08.json \
+                     ../../../extended-results/LANL_EXTENDED_PT_DAY-09.json \
+                     ../../../extended-results/LANL_EXTENDED_PT_DAY-10.json \
+            --output LANL_EXTENDED_PT_CONFIRMATORY_SUMMARY.json
+
+      - name: Validate confirmatory separation
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('LANL_EXTENDED_PT_CONFIRMATORY_SUMMARY.json', encoding='utf-8'))
+          assert r['status']=='PASS'
+          assert r['days']==[6,7,8,9,10]
+          assert r['guardrails']['posthoc_day_selection'] is False
+          assert r['guardrails']['posthoc_hyperparameter_selection'] is False
+          assert r['guardrails']['H_repair_performed'] is False
+          assert r['guardrails']['causal_edge_claim'] is False
+          PY
+          sha256sum LANL_EXTENDED_PT_CONFIRMATORY_SUMMARY.json
+
+      - name: Upload confirmatory aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-lanl-extended-pt-confirmatory
+          path: experiments/v3/03_transportability/LANL_EXTENDED_PT_CONFIRMATORY_SUMMARY.json
+          if-no-files-found: error
+          retention-days: 90
