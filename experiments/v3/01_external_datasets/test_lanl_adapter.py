@@ -18,12 +18,12 @@ def test_official_kerberos_sample_is_user_associated_and_technical():
     }
     obs = map_host_event(event)
     assert types(obs) == ["H", "T"]
-    assert obs[0].evidence_role == "user_associated_action"
+    assert obs[0].evidence_role == "deidentified_person_account_action"
     assert obs[1].evidence_role == "technical_host_event"
     assert all(x.source_device == "Comp309534" for x in obs)
 
 
-def test_process_start_with_user_is_h_plus_p():
+def test_process_start_with_deidentified_person_account_is_h_plus_p():
     event = {
         "EventID": 4688,
         "UserName": "User1",
@@ -45,6 +45,16 @@ def test_process_start_without_user_is_p_only():
     assert types(obs) == ["P"]
 
 
+def test_machine_account_never_emits_h():
+    obs = map_host_event({"EventID": 4624, "UserName": "Comp883934$", "Time": 103})
+    assert types(obs) == ["T"]
+
+
+def test_system_account_never_emits_h():
+    obs = map_host_event({"EventID": 4624, "UserName": "SYSTEM", "Time": 104})
+    assert types(obs) == ["T"]
+
+
 def test_system_event_is_technical_only():
     obs = map_host_event({"EventID": 4608, "LogHost": "Comp1", "Time": 102})
     assert types(obs) == ["T"]
@@ -61,10 +71,11 @@ def test_official_network_sample_is_technical_flow():
 
 def test_no_intervention_type_is_ever_emitted():
     events = [
-        {"EventID": 4624, "UserName": "U1", "Time": 1},
-        {"EventID": 4688, "UserName": "U1", "Time": 2},
+        {"EventID": 4624, "UserName": "User1", "Time": 1},
+        {"EventID": 4688, "UserName": "User1", "Time": 2},
         {"EventID": 4608, "Time": 3},
+        {"EventID": 4624, "UserName": "Comp1$", "Time": 4},
     ]
     emitted = [x.dchag_type for event in events for x in map_host_event(event)]
-    emitted += [x.dchag_type for x in map_network_flow([4, 1, "C1", "C2"])]
+    emitted += [x.dchag_type for x in map_network_flow([5, 1, "C1", "C2"])]
     assert "C" not in emitted
