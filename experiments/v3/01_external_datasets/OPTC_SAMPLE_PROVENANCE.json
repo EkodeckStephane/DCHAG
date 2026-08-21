@@ -1,0 +1,11 @@
+{
+  "experiment_id": "V3-OPTC-INGEST-001",
+  "source_repository": "brbickel/ecar-challenge",
+  "source_ref": "45b7c7c85ddce4b44f84f68af7822c5466a7077d",
+  "source_path": "data.json",
+  "source_git_blob_sha1": "25279a41030981ead9bf6134432aa6112429eb82",
+  "source_size_bytes": 5649857,
+  "upstream_claim": "small snippet of host-based eCAR data from the OpTC release",
+  "raw_retention_policy": "Do not commit the raw sample to DCHAG. Fetch by immutable source ref, verify Git blob SHA-1 and byte size, retain only aggregate analysis outputs.",
+  "red_team_ground_truth_policy": "Withheld from ingestion and mapping; not a model input and not an intervention oracle."
+}
