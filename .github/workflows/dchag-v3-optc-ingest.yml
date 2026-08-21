@@ -10,6 +10,12 @@ on:
       - 'experiments/v3/01_external_datasets/test_optc_adapter.py'
       - 'experiments/v3/01_external_datasets/run_optc_ingest.py'
       - 'experiments/v3/01_external_datasets/OPTC_SAMPLE_PROVENANCE.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/dchag-v3-optc-ingest.yml'
+      - 'experiments/v3/**'
   workflow_dispatch:
 
 permissions:
