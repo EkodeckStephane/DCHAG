@@ -1,0 +1,68 @@
+{
+  "experiment_id": "V3-SS-DEV-001",
+  "status": "PASS",
+  "stage": "development_only",
+  "workflow_run": 32526360956,
+  "workflow_job": 96909122486,
+  "workflow_head": "a816f5567dcfa24396d9ca2edde380ccadc2f7f7",
+  "artifact_id": 9462315359,
+  "artifact_name": "dchag-v3-semisynthetic-development",
+  "artifact_zip_sha256": "ca33420fe43da84d85b2785f9a845534cc22399f2ea30ed9fda416c64ecbecb5",
+  "protocol_commit": "22aca632ff51f4bb2bfa3912aae079903fb76a15",
+  "builder_commit": "4042d61fd66f130197ceed22fb0903640c95e63c",
+  "test_commit": "23d6d8f88eb8ca7eea07532257701c343ef45d57",
+  "workflow_commit": "304eb8c26a56ac01df091f7c1e4e781a50cfb3c0",
+  "parent_trajectory": {
+    "artifact_id": 9453590911,
+    "artifact_zip_sha256": "d6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b",
+    "member": "LANL_TRAJECTORY_300S.csv.gz",
+    "member_sha256": "6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22",
+    "unique_source_devices": 31243
+  },
+  "allocation": {
+    "worlds": 4,
+    "devices_per_world": 1500,
+    "train_devices_per_world": 1100,
+    "test_devices_per_world": 400,
+    "train_rows_per_world": 6600,
+    "test_rows_per_world": 2400,
+    "confirmatory_worlds_generated": 0,
+    "confirmatory_worlds_scored": 0
+  },
+  "independent_audit": {
+    "freeze_manifests_checked": 4,
+    "referenced_frozen_files_checked": 24,
+    "freeze_hash_mismatches": 0,
+    "builder_regression_tests": "5/5 passed",
+    "workflow_guardrails": "PASS"
+  },
+  "development_diagnostics": {
+    "train_Y_prevalence_min": 0.09196969696969697,
+    "train_Y_prevalence_max": 0.2034848484848485,
+    "test_Y_prevalence_min": 0.09,
+    "test_Y_prevalence_max": 0.19625,
+    "train_control_prevalence_min": 0.28833333333333333,
+    "train_control_prevalence_max": 0.5778787878787879,
+    "oracle_effect_min": 0.02344444444444444,
+    "oracle_effect_max": 0.2532,
+    "oracle_effect_mean_across_16_world_control_pairs": 0.08957638888888889,
+    "oracle_se_min": 0.0008944446861514436,
+    "oracle_se_max": 0.003704872970372888,
+    "mean_effect_by_control": {
+      "C1": 0.07686666666666667,
+      "C2": 0.033855555555555555,
+      "C3": 0.058933333333333324,
+      "C4": 0.18864999999999998
+    }
+  },
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "LANL_defensive_intervention_inferred": false,
+    "real_anchor_treated_as_causal_truth": false,
+    "hidden_confounder_present": false,
+    "estimator_private_SCM_access": false,
+    "confirmatory_hyperparameter_tuning": false,
+    "confirmatory_world_replacement": false
+  },
+  "claim_boundary": "Development benchmark integrity and estimator-development suitability only. These four worlds cannot support confirmatory RQ1 performance claims and must not be pooled with the sixteen reserved confirmatory worlds."
+}
