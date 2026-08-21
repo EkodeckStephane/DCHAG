@@ -11,6 +11,21 @@
     "experiments/validation_v2/FROZEN_PROTOCOL_v2.md": "f8d8e53fb5f0c901af89e8f1c880cc22568bfa6fc029b77edcd3dfd8f1ddfe9d",
     "experiments/validation_v2/PROTOCOL_AMENDMENT_v2_1.md": "681244f3a102816231bfef37018f8de4d6f88165db4cd815512bb295bc5d1918"
   },
+  "repository_paths": {
+    "adversarial_validation/common.py": "provenance/v2_hardened/adversarial_validation/common.py",
+    "adversarial_validation/estimate_validation_v2.py": "provenance/v2_hardened/adversarial_validation/estimate_validation_v2.py",
+    "adversarial_validation/generate_validation_v2.py": "v2_provenance/adversarial_validation/generate_validation_v2.py",
+    "adversarial_validation/score_validation_v2.py": "v2_provenance/adversarial_validation/score_validation_v2.py",
+    "experiments/validation_v2/FROZEN_HYPERPARAMETERS.json": "v2_provenance/validation_v2/FROZEN_HYPERPARAMETERS.json",
+    "experiments/validation_v2/FROZEN_PROTOCOL_v2.md": "v2_provenance/validation_v2/FROZEN_PROTOCOL_v2.md",
+    "experiments/validation_v2/PROTOCOL_AMENDMENT_v2_1.md": "v2_provenance/validation_v2/PROTOCOL_AMENDMENT_v2_1.md"
+  },
+  "protocol_chronology": {
+    "initial_protocol": "FROZEN_PROTOCOL_v2.md contains the original development parent-cap set {4, 6}.",
+    "amendment": "PROTOCOL_AMENDMENT_v2_1.md was frozen after prespecified development scoring and before generation of any confirmatory or latent-sensitivity observations; it changed the learned selector to L1 logistic conditional screening and evaluated caps 6, 8, 10.",
+    "confirmatory_lock": "The amendment froze max_parents=10, screening_C=0.05 and local_model_C=0.7 before confirmatory observation generation.",
+    "preservation_rule": "Both original documents are retained byte-for-byte. The apparent {4,6} versus {6,8,10} discrepancy is historical chronology, not silently normalized text."
+  },
   "frozen_confirmatory_estimator": {
     "max_parents": 10,
     "screening": "L1 logistic conditional screening",
@@ -18,6 +33,11 @@
     "local_model": "logistic main effects plus all selected pairwise interactions",
     "local_model_C": 0.7,
     "dense_baseline": "HistGradientBoostingClassifier over all temporally admissible observed history"
+  },
+  "verification": {
+    "workflow": ".github/workflows/dchag-v2-provenance-verify.yml",
+    "required_check": "all seven repository files must match the source_snapshot SHA-256 manifest and archived Python sources must compile",
+    "status": "pending GitHub Actions verification at the commit carrying this manifest"
   },
   "claim_boundary": "This branch is a provenance archive. It does not itself promote new v3 results."
 }
