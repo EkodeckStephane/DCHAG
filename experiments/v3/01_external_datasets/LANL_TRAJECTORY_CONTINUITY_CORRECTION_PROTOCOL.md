@@ -1,28 +1,24 @@
-# V3-LANL-TRAJ-001-C1 — frozen continuity post-processing correction
+# V3-LANL-TRAJ-001-C1 — post-hoc reproducibility specification
 
-## Reason for correction
+## Chronology and status
 
-`V3-LANL-TRAJ-001` pre-registered, as primary endpoint 6, both the distribution of active windows per device and the **longest consecutive active run**. The frozen trajectory builder reported the former but omitted the latter from its aggregate summary.
+This file is **not a preregistration and must not be cited as a protocol frozen before result inspection**. The original `V3-LANL-TRAJ-001` protocol had already pre-registered longest-consecutive-active-window continuity as part of endpoint 6, and the retained correction result `LANL_TRAJECTORY_CONTINUITY_CORRECTION.json` already existed on `dchag-v3` before this specification was added.
 
-This correction does **not** alter, regenerate, filter, or re-bin the primary trajectory. It computes the missing pre-registered continuity endpoint from the retained 300-second trajectory artifact only.
+This later document only makes the deterministic post-processing algorithm and independent verification checks explicit. Git history preserves that chronology.
 
-## Immutable input
+## Reason for the original correction
 
-GitHub Actions run: `32498616088`.
+`V3-LANL-TRAJ-001` pre-registered both the distribution of active windows per device and the **longest consecutive active run**. The original aggregate trajectory script reported the former but omitted the latter. `V3-LANL-TRAJ-001-C1` recovered that omitted endpoint from the immutable retained 300-second trajectory without altering, regenerating, filtering, or re-binning the parent trajectory.
 
-Artifact: `dchag-v3-lanl-trajectory-300s` (artifact id `9453590911`).
+## Immutable input used for independent verification
 
-Artifact ZIP SHA-256:
-
-`d6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b`
-
-Contained file: `LANL_TRAJECTORY_300S.csv.gz`.
-
-Contained compressed CSV SHA-256:
-
-`6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22`
-
-The expected window width is 300 seconds and the expected origin remains `118781`, exactly as frozen in `V3-LANL-TRAJ-001`.
+- GitHub Actions run: `32498616088`.
+- Artifact: `dchag-v3-lanl-trajectory-300s` (artifact id `9453590911`).
+- Artifact ZIP SHA-256: `d6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b`.
+- Contained file: `LANL_TRAJECTORY_300S.csv.gz`.
+- Contained compressed CSV SHA-256: `6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22`.
+- Expected primary width: 300 s.
+- Frozen overlap origin: `118781`.
 
 ## Deterministic endpoint definition
 
@@ -30,41 +26,31 @@ Each retained row is one active `device × 300-second window`, identified by `(d
 
 For each device:
 
-1. consider its observed active `window_idx` values in ascending order;
-2. a consecutive run continues only when the next active index is exactly `previous_index + 1`;
-3. any gap of one or more missing window indices terminates the current run;
+1. sort/consume its active `window_idx` values in ascending order;
+2. a run continues only when the next active index is exactly `previous_index + 1`;
+3. any missing index terminates the current run;
 4. the device-level endpoint is the maximum run length observed for that device.
 
 No inactive rows are imputed. Missing indices are interpreted only as breaks in active-window continuity.
 
-## Frozen outputs
+The retained correction reports median `7`, p90 `181`, maximum `181`, `4,274` devices active in all 181 retained grid indices, and `9,512` devices with a longest run of at least 90 windows. Independent recomputation from the immutable artifact reproduced these values exactly.
 
-The correction must report:
+## Additional verification diagnostics
 
-- number of trajectory rows read;
-- number of unique devices;
-- minimum, median, p90, mean, and maximum device-level longest consecutive active-run length, in windows;
-- the same durations in seconds/minutes where meaningful;
-- counts and fractions of devices whose longest run is at least 2, 6, 12, 36, 72, and 181 windows (10 min, 30 min, 1 h, 3 h, 6 h, and complete 15 h 5 min nominal 300-s grid coverage, respectively);
-- identity of the input artifact and contained file via SHA-256;
-- guardrails inherited from `V3-LANL-TRAJ-001`.
+For reproducibility auditing only, later independent checks also evaluated thresholds of 2, 6, 12, 36, 72 and 181 consecutive windows. These thresholds were **not pre-registered outputs of C1** and must not be presented as such.
 
-Percentile convention: nearest-rank empirical p90, implemented as sorted value at index `ceil(0.90*n)-1`.
+The final 300-second grid cell is naturally truncated by the frozen overlap interval. Therefore 181 consecutive active windows means activity in every retained grid index (`0..180`), not 905 minutes of observed source coverage.
 
-Median convention: standard midpoint median for even `n`.
+## Verification failure conditions
 
-## Validity checks
-
-The post-processor must fail if:
+An independent post-processor should fail if:
 
 - the CSV schema lacks `window_idx` or `device`;
-- `(device, window_idx)` duplicates are encountered;
-- `window_idx` decreases globally, because the one-pass deterministic algorithm relies on the frozen trajectory ordering;
-- row count or unique-device count disagrees with the frozen primary summary (`2,642,689` rows; `31,243` devices);
+- duplicate `(device, window_idx)` rows are encountered;
+- `window_idx` decreases globally when using the retained file ordering;
+- row count or unique-device count disagrees with the parent summary (`2,642,689` rows; `31,243` devices);
 - the compressed input SHA-256 differs from the value above.
 
 ## Claim boundary
 
-This correction closes a reporting omission in a pre-registered observational continuity endpoint. It provides no causal identification, causal edge, intervention effect, attacker-intent, or defensive-control-effectiveness evidence.
-
-The original `V3-LANL-TRAJ-001` result remains unchanged and must remain separately identifiable in the experiment ledger.
+The correction closes a reporting omission in a pre-registered observational continuity endpoint. It provides no causal identification, causal edge, intervention effect, attacker-intent, or defensive-control-effectiveness evidence. The original `V3-LANL-TRAJ-001` result remains unchanged and separately identifiable in the experiment ledger.
