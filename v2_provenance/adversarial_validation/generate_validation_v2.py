@@ -152,7 +152,7 @@ def public_schema(world):
 
 
 def generate_one(tag,family,seed,latent,ntrain,ntest):
-    w=make_world(family,seed,latent=latent); pub=PUBLIC/tag]; prv=PRIVATE/tag]; pub.mkdir(parents=True,exist_ok=True);prv.mkdir(parents=True,exist_ok=True)
+    w=make_world(family,seed,latent=latent); pub=PUBLIC/tag; prv=PRIVATE/tag; pub.mkdir(parents=True,exist_ok=True);prv.mkdir(parents=True,exist_ok=True)
     train=simulate(w,ntrain,seed+10001); test=simulate(w,ntest,seed+20001)
     flatten_frame(train,w["order"]).to_csv(pub/"train.csv",index=False)
     flatten_frame(test,w["order"]).to_csv(pub/"test.csv",index=False)
