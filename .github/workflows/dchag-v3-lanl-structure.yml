@@ -1,0 +1,80 @@
+name: DCHAG v3 LANL learned temporal structure
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - 'experiments/v3/03_transportability/**'
+      - '.github/workflows/dchag-v3-lanl-structure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  lanl-structure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen runner dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas scikit-learn pytest
+
+      - name: Run pre-data regression tests
+        working-directory: experiments/v3/03_transportability
+        run: python -m pytest -q test_run_lanl_structure.py
+
+      - name: Retrieve immutable V3-LANL-TRAJ-001 primary artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p input
+          gh run download 32498616088 \
+            --repo "$GITHUB_REPOSITORY" \
+            --name dchag-v3-lanl-trajectory-300s \
+            --dir input
+
+      - name: Verify retained trajectory identity
+        run: |
+          test "$(sha256sum input/LANL_TRAJECTORY_300S.csv.gz | awk '{print $1}')" = "6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22"
+          stat --printf='%n %s bytes\n' input/LANL_TRAJECTORY_300S.csv.gz
+
+      - name: Execute frozen learned-structure experiment
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python run_lanl_structure.py \
+            --trajectory "$GITHUB_WORKSPACE/input/LANL_TRAJECTORY_300S.csv.gz" \
+            --output LANL_STRUCTURE_RESULTS.json
+
+      - name: Validate scientific guardrails
+        working-directory: experiments/v3/03_transportability
+        run: |
+          python - <<'PY'
+          import json
+          r = json.load(open('LANL_STRUCTURE_RESULTS.json', encoding='utf-8'))
+          assert r['status'] == 'PASS'
+          assert r['guardrails']['attack_or_red_team_labels_read'] is False
+          assert r['guardrails']['defensive_intervention_C_inferred'] is False
+          assert r['guardrails']['counterfactual_effect_claim'] is False
+          assert r['guardrails']['same_window_edges_allowed'] is False
+          assert r['guardrails']['hyperparameters_tuned_on_LANL'] is False
+          assert r['channels'] == ['H_login', 'P_process', 'T_network']
+          assert all('[t-1]->' in e for e in r['edge_selection_frequency'])
+          PY
+
+      - name: Upload aggregate structure result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-lanl-structure-results
+          path: experiments/v3/03_transportability/LANL_STRUCTURE_RESULTS.json
+          if-no-files-found: error
+          retention-days: 90
