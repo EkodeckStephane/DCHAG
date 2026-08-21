@@ -1,0 +1,104 @@
+{
+  "all_pairwise_sign_agreement": 1.0,
+  "artifact_id": 9455407225,
+  "artifact_zip_sha256": "7a182523bad9e9996fefc4c1969a0abd3faee49a496cb7eb952d24ac7c219a69",
+  "channels": [
+    "H_login",
+    "P_process",
+    "T_network"
+  ],
+  "early_late_stability": {
+    "early_edges": [
+      "H_login[t-1]->H_login[t]",
+      "H_login[t-1]->P_process[t]",
+      "H_login[t-1]->T_network[t]",
+      "P_process[t-1]->H_login[t]",
+      "P_process[t-1]->P_process[t]",
+      "P_process[t-1]->T_network[t]",
+      "T_network[t-1]->H_login[t]",
+      "T_network[t-1]->P_process[t]",
+      "T_network[t-1]->T_network[t]"
+    ],
+    "early_target_windows": [1, 90],
+    "edge_jaccard": 1.0,
+    "late_edges": [
+      "H_login[t-1]->H_login[t]",
+      "H_login[t-1]->P_process[t]",
+      "H_login[t-1]->T_network[t]",
+      "P_process[t-1]->H_login[t]",
+      "P_process[t-1]->P_process[t]",
+      "P_process[t-1]->T_network[t]",
+      "T_network[t-1]->H_login[t]",
+      "T_network[t-1]->P_process[t]",
+      "T_network[t-1]->T_network[t]"
+    ],
+    "late_target_windows": [91, 180],
+    "sign_agreement_on_shared_edges": 1.0
+  },
+  "edge_selection_frequency": {
+    "H_login[t-1]->H_login[t]": 5,
+    "H_login[t-1]->P_process[t]": 5,
+    "H_login[t-1]->T_network[t]": 5,
+    "P_process[t-1]->H_login[t]": 5,
+    "P_process[t-1]->P_process[t]": 5,
+    "P_process[t-1]->T_network[t]": 5,
+    "T_network[t-1]->H_login[t]": 5,
+    "T_network[t-1]->P_process[t]": 5,
+    "T_network[t-1]->T_network[t]": 5
+  },
+  "execution_status": "PASS",
+  "experiment_id": "V3-LANL-STRUCT-001",
+  "fallback_used_in_any_fold": false,
+  "fold_sizes": {
+    "0": 6223,
+    "1": 6316,
+    "2": 6396,
+    "3": 6280,
+    "4": 6028
+  },
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "counterfactual_effect_claim": false,
+    "defensive_intervention_C_inferred": false,
+    "hyperparameters_tuned_on_LANL": false,
+    "same_window_edges_allowed": false
+  },
+  "out_of_fold": {
+    "H_login": {
+      "DCHAG_Learned_Lag1": 0.037101677038110126,
+      "Prevalence": 0.04233443933675254,
+      "SelfLag": 0.04070598597519465,
+      "brier_difference_dchag_minus_self": -0.0036043089370845216,
+      "bss_vs_prevalence": 0.12360532891478737
+    },
+    "P_process": {
+      "DCHAG_Learned_Lag1": 0.008198307938806484,
+      "Prevalence": 0.19843281435037388,
+      "SelfLag": 0.008417847449754696,
+      "brier_difference_dchag_minus_self": -0.00021953951094821206,
+      "bss_vs_prevalence": 0.9586847167105603
+    },
+    "T_network": {
+      "DCHAG_Learned_Lag1": 0.11733824443582785,
+      "Prevalence": 0.24525100904094724,
+      "SelfLag": 0.12672089869917152,
+      "brier_difference_dchag_minus_self": -0.00938265426334367,
+      "bss_vs_prevalence": 0.5215585660802031
+    }
+  },
+  "pairwise_edge_jaccard_summary": {
+    "max": 1.0,
+    "median": 1.0,
+    "min": 1.0
+  },
+  "result_json_sha256": "5ddd11378e95ab0ce326aad0ce85cb7d838ddaeb5ab25c19da837355083287ab",
+  "runner_head": "9e1ee8f82468091d87d9927f5d8b15bf63e68112",
+  "scientific_interpretation": "MIXED: predictive transportability is supported, but sparse structural selectivity is not supported because all nine admissible lag-1 edges were selected in every device fold and in both temporal halves. Jaccard=1 therefore cannot be promoted as evidence of sparse structural transfer.",
+  "source": {
+    "n_devices": 31243,
+    "n_windows": 181,
+    "window_width_seconds": 300
+  },
+  "source_trajectory_sha256": "6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22",
+  "workflow_run_id": 32506381773
+}
