@@ -109,3 +109,5 @@ Report:
 ## Claim boundary
 
 A positive result may support **extended temporal observational transportability** of the scale-aware sparse P/T lagged-dependency mechanism. It cannot establish causal identification, human intention, control effectiveness, attack causality, or counterfactual risk reduction.
+
+<!-- Execution-trigger comment only; frozen scientific semantics are unchanged. -->
