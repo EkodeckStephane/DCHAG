@@ -50,7 +50,32 @@ def test_rank_metrics_identifies_best_control_and_zero_regret():
     assert out["normalized_regret"] == 0.0
 
 
-def test_candidate_constants_are_frozen():
+def _anchor_split(n_units, horizon, marker):
+    rows = []
+    for trajectory_id in range(n_units):
+        for t in range(horizon):
+            rows.append({
+                "trajectory_id": trajectory_id,
+                "time": t,
+                "A_person": marker,
+                "A_process": (trajectory_id + t) % 2,
+                "A_technical": 1,
+            })
+    return pd.DataFrame(rows)
+
+
+def test_split_local_trajectory_ids_do_not_collapse_anchor_units():
+    train = _anchor_split(3, 2, 0)
+    test = _anchor_split(2, 2, 1)  # IDs 0 and 1 deliberately collide with train IDs
+    anchors = sssel.anchor_tensor_splits(train, test, 2)
+    assert anchors.shape == (5, 2, 3)
+    assert np.all(anchors[:3, :, 0] == 0)
+    assert np.all(anchors[3:, :, 0] == 1)
+
+
+def test_candidate_constants_are_frozen_for_correction():
+    assert sssel.EXPERIMENT_ID == "V3-SS-SEL-001-C1"
+    assert sssel.MC_SEED_NAMESPACE == "V3-SS-SEL-001"
     assert sssel.CAPS == [6, 8, 10]
     assert sssel.SCREENING_C == 0.05
     assert sssel.LOCAL_C == 0.7
