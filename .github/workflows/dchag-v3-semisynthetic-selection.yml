@@ -1,0 +1,107 @@
+name: DCHAG v3 semisynthetic estimator selection
+
+on:
+  pull_request:
+    branches: [dchag-v3]
+    paths:
+      - '.github/triggers/dchag-v3-semisynth-selection.txt'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  select-estimator:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+
+      - name: Run frozen selection tests
+        run: |
+          pytest -q experiments/v3/02_semisynthetic/test_select_semisynthetic_estimator.py
+
+      - name: Download immutable Stage-A artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dchag-ss-dev
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9462315359/zip" \
+            -o /tmp/dchag-ss-dev/stage-a.zip
+          echo 'ca33420fe43da84d85b2785f9a845534cc22399f2ea30ed9fda416c64ecbecb5  /tmp/dchag-ss-dev/stage-a.zip' | sha256sum -c -
+          unzip -q /tmp/dchag-ss-dev/stage-a.zip -d /tmp/dchag-ss-dev/data
+
+      - name: Enforce development-confirmatory firewall
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('/tmp/dchag-ss-dev/data')
+          public=sorted(p.name for p in (root/'public').iterdir() if p.is_dir())
+          private=sorted(p.name for p in (root/'private').iterdir() if p.is_dir())
+          expected=sorted(['dev_helpdesk_identity','dev_bec_payment','dev_exfiltration','dev_itot_change'])
+          assert public == expected, public
+          assert private == expected, private
+          assert not any('confirm' in x.lower() for x in public+private)
+          print('STAGE_A_FIREWALL=PASS')
+          PY
+
+      - name: Run frozen candidate selection
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-ss-selection
+          python experiments/v3/02_semisynthetic/select_semisynthetic_estimator.py \
+            --dev-root /tmp/dchag-ss-dev/data \
+            --outdir /tmp/dchag-ss-selection
+          python -m pip freeze > /tmp/dchag-ss-selection/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/dchag-ss-selection/WORKFLOW_HEAD.txt
+
+      - name: Validate frozen selection output
+        run: |
+          python - <<'PY'
+          import json, math
+          from pathlib import Path
+          root=Path('/tmp/dchag-ss-selection')
+          r=json.loads((root/'SEMISYNTHETIC_ESTIMATOR_SELECTION_RESULTS.json').read_text())
+          f=json.loads((root/'FROZEN_SEMISYNTHETIC_ESTIMATOR.json').read_text())
+          assert r['experiment_id']=='V3-SS-SEL-001'
+          assert r['candidates']==[6,8,10]
+          assert r['selected_max_parents'] in [6,8,10]
+          assert f['max_parents']==r['selected_max_parents']
+          assert f['screening_C']==0.05 and f['local_model_C']==0.7
+          assert f['intervention_mc_reps_per_anchor']==100
+          assert len(r['world_metrics'])==12
+          for row in r['world_metrics']:
+              assert math.isfinite(row['effect_mae'])
+              assert math.isfinite(row['signed_bias'])
+          g=r['guardrails']
+          assert g['confirmatory_worlds_generated']==0
+          assert g['confirmatory_worlds_scored']==0
+          assert not g['confirmatory_hyperparameter_tuning']
+          assert not g['estimator_private_SCM_access_during_fit']
+          assert g['private_development_oracle_access_only_in_scorer']
+          assert not g['candidate_set_changed_after_inspection']
+          print('V3_SS_SEL_001_VALIDATION=PASS')
+          PY
+
+      - name: Upload frozen selection artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-estimator-selection
+          path: /tmp/dchag-ss-selection/
+          retention-days: 90
+          if-no-files-found: error
