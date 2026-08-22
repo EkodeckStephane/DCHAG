@@ -1,13 +1,11 @@
-import importlib.util
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-MODULE_PATH = Path(__file__).with_name("select_semisynthetic_estimator.py")
-spec = importlib.util.spec_from_file_location("sssel", MODULE_PATH)
-sssel = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(sssel)
+sys.path.insert(0, str(Path(__file__).parent))
+import select_semisynthetic_estimator as sssel
 
 
 def test_feature_specs_include_current_predecessors_and_full_lag1():
