@@ -15,6 +15,8 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import brier_score_loss
 
+EXPERIMENT_ID = "V3-SS-SEL-001-C1"
+MC_SEED_NAMESPACE = "V3-SS-SEL-001"  # intentionally preserved to isolate the anchor-identity correction
 CAPS = [6, 8, 10]
 SCREENING_C = 0.05
 LOCAL_C = 0.7
@@ -102,8 +104,9 @@ class LocalModel:
 
 def fit_local(df: pd.DataFrame, order: list[str], node: str, cap: int) -> LocalModel:
     X, y, specs, _ = design(df, order, node)
-    if y.min() == y.max():
-        return LocalModel(node, specs, [], None, float(y.mean()), False)
+    if len(y) == 0 or y.min() == y.max():
+        p = float(y.mean()) if len(y) else 0.5
+        return LocalModel(node, specs, [], None, p, False)
 
     screening = LogisticRegression(
         penalty="l1",
@@ -157,14 +160,24 @@ def selected_edges(models: dict[str, LocalModel]):
     return sorted(set(edges))
 
 
-def anchor_tensor(public_all: pd.DataFrame, horizon: int) -> np.ndarray:
-    data = public_all.sort_values(["trajectory_id", "time"])
-    ids = sorted(data.trajectory_id.unique())
-    out = np.zeros((len(ids), horizon, len(ANCHORS)), dtype=np.int8)
-    index = {trajectory_id: i for i, trajectory_id in enumerate(ids)}
-    for _, row in data[["trajectory_id", "time"] + ANCHORS].iterrows():
-        out[index[row.trajectory_id], int(row.time), :] = [int(row[a]) for a in ANCHORS]
-    return out
+def anchor_tensor_one_split(df: pd.DataFrame, horizon: int) -> np.ndarray:
+    data = df.sort_values(["trajectory_id", "time"]).reset_index(drop=True)
+    ids = np.array(sorted(data.trajectory_id.unique()))
+    if len(data) != len(ids) * horizon:
+        raise RuntimeError("split does not contain complete trajectory blocks")
+    if not np.array_equal(data.trajectory_id.to_numpy(), np.repeat(ids, horizon)):
+        raise RuntimeError("split trajectory blocks are not contiguous after sorting")
+    if not np.array_equal(data.time.to_numpy(), np.tile(np.arange(horizon), len(ids))):
+        raise RuntimeError("split trajectory time grid mismatch")
+    return data[ANCHORS].to_numpy(np.int8).reshape(len(ids), horizon, len(ANCHORS))
+
+
+def anchor_tensor_splits(train: pd.DataFrame, test: pd.DataFrame, horizon: int) -> np.ndarray:
+    # trajectory_id is intentionally treated as split-local. Never concatenate rows and key by numeric ID.
+    train_anchors = anchor_tensor_one_split(train, horizon)
+    test_anchors = anchor_tensor_one_split(test, horizon)
+    anchors = np.concatenate([train_anchors, test_anchors], axis=0)
+    return anchors
 
 
 def simulate(models, schema, anchors, intervention_control, intervention_value, uniforms):
@@ -175,10 +188,7 @@ def simulate(models, schema, anchors, intervention_control, intervention_value, 
     final_y = None
 
     for time in range(schema["horizon"]):
-        current = {
-            anchor: anchors[:, time, i].astype(np.int8)
-            for i, anchor in enumerate(ANCHORS)
-        }
+        current = {anchor: anchors[:, time, i].astype(np.int8) for i, anchor in enumerate(ANCHORS)}
         for k, node in enumerate(nonanchors):
             if node == intervention_control:
                 value = np.full(n, intervention_value, dtype=np.int8)
@@ -202,7 +212,7 @@ def effect_estimates(models, schema, anchors, world: str, cap: int):
     for control in schema["controls"]:
         seed = int(
             hashlib.sha256(
-                f"V3-SS-SEL-001|{world}|cap{cap}|{control}".encode("utf-8")
+                f"{MC_SEED_NAMESPACE}|{world}|cap{cap}|{control}".encode("utf-8")
             ).hexdigest()[:16],
             16,
         ) % (2**32)
@@ -213,11 +223,7 @@ def effect_estimates(models, schema, anchors, world: str, cap: int):
         )
         risk0 = simulate(models, schema, repeated_anchors, control, 0, uniforms)
         risk1 = simulate(models, schema, repeated_anchors, control, 1, uniforms)
-        estimates[control] = {
-            "risk_do0": risk0,
-            "risk_do1": risk1,
-            "risk_reduction": risk0 - risk1,
-        }
+        estimates[control] = {"risk_do0": risk0, "risk_do1": risk1, "risk_reduction": risk0 - risk1}
     return estimates
 
 
@@ -229,10 +235,7 @@ def rank_metrics(true_effects: dict[str, float], estimates: dict[str, float]):
     spearman = float(spearmanr(truth, estimate).statistic)
     best = controls[int(np.argmax(truth))]
     selected = controls[int(np.argmax(estimate))]
-    regret = float(
-        (true_effects[best] - true_effects[selected])
-        / max(abs(true_effects[best]), 1e-12)
-    )
+    regret = float((true_effects[best] - true_effects[selected]) / max(abs(true_effects[best]), 1e-12))
     return {
         "kendall": kendall,
         "spearman": spearman,
@@ -258,13 +261,7 @@ def score_edges(estimated_edges, true_edges):
     precision = tp / len(estimated) if estimated else 0.0
     recall = tp / len(truth) if truth else 1.0
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {
-        "learned_edges": len(estimated),
-        "true_edges": len(truth),
-        "edge_precision": precision,
-        "edge_recall": recall,
-        "edge_f1": f1,
-    }
+    return {"learned_edges": len(estimated), "true_edges": len(truth), "edge_precision": precision, "edge_recall": recall, "edge_f1": f1}
 
 
 def main():
@@ -276,46 +273,34 @@ def main():
     root = Path(args.dev_root)
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
-    worlds = sorted(
-        p.name for p in (root / "public").iterdir()
-        if p.is_dir() and p.name.startswith("dev_")
-    )
+    worlds = sorted(p.name for p in (root / "public").iterdir() if p.is_dir() and p.name.startswith("dev_"))
     if worlds != EXPECTED_WORLDS:
         raise RuntimeError(f"unexpected development worlds: {worlds}")
 
     rows = []
     details = {}
+    anchor_counts = {}
     for cap in CAPS:
         details[str(cap)] = {}
         for world in worlds:
             schema = json.loads((root / "public" / world / "schema.json").read_text())
             train = pd.read_csv(root / "public" / world / "train.csv")
             test = pd.read_csv(root / "public" / world / "test.csv")
-            public_all = pd.concat([train, test], ignore_index=True)
 
             models = fit_world(train, schema, cap)
             edges = selected_edges(models)
-            anchors = anchor_tensor(public_all, schema["horizon"])
+            anchors = anchor_tensor_splits(train, test, schema["horizon"])
+            if train.trajectory_id.nunique() != 1100 or test.trajectory_id.nunique() != 400 or len(anchors) != 1500:
+                raise RuntimeError(f"corrected anchor-count invariant failed for {world}")
+            anchor_counts[world] = {"train": 1100, "test": 400, "standardization": int(len(anchors))}
             effects = effect_estimates(models, schema, anchors, world, cap)
 
             oracle = json.loads((root / "private" / world / "oracle_effects.json").read_text())
-            true_effects = {
-                c: float(oracle[c]["risk_reduction"])
-                for c in schema["controls"]
-            }
-            estimates = {
-                c: float(effects[c]["risk_reduction"])
-                for c in schema["controls"]
-            }
-            errors = np.array(
-                [estimates[c] - true_effects[c] for c in schema["controls"]],
-                dtype=float,
-            )
+            true_effects = {c: float(oracle[c]["risk_reduction"]) for c in schema["controls"]}
+            estimates = {c: float(effects[c]["risk_reduction"]) for c in schema["controls"]}
+            errors = np.array([estimates[c] - true_effects[c] for c in schema["controls"]], dtype=float)
             ranking = rank_metrics(true_effects, estimates)
-            edge_metrics = score_edges(
-                edges,
-                json.loads((root / "private" / world / "true_edges.json").read_text()),
-            )
+            edge_metrics = score_edges(edges, json.loads((root / "private" / world / "true_edges.json").read_text()))
             record = {
                 "cap": cap,
                 "world": world,
@@ -323,16 +308,12 @@ def main():
                 "signed_bias": float(np.mean(errors)),
                 "brier_final_y": final_y_brier(models, test, schema),
                 "mi_fallback_nodes": sum(int(model.fallback) for model in models.values()),
+                "standardization_anchor_units": int(len(anchors)),
                 **ranking,
                 **edge_metrics,
             }
             rows.append(record)
-            details[str(cap)][world] = {
-                "effects": effects,
-                "oracle": oracle,
-                "metrics": record,
-                "learned_edges": [list(edge) for edge in edges],
-            }
+            details[str(cap)][world] = {"effects": effects, "oracle": oracle, "metrics": record, "learned_edges": [list(edge) for edge in edges]}
 
     world_metrics = pd.DataFrame(rows)
     candidates = []
@@ -350,26 +331,21 @@ def main():
             "mean_brier_final_y": float(current.brier_final_y.mean()),
             "total_mi_fallback_nodes": int(current.mi_fallback_nodes.sum()),
         })
-    candidates = sorted(
-        candidates,
-        key=lambda row: (row["primary_mean_world_effect_mae"], row["cap"]),
-    )
+    candidates = sorted(candidates, key=lambda row: (row["primary_mean_world_effect_mae"], row["cap"]))
     selected_cap = candidates[0]["cap"]
 
     result = {
-        "experiment_id": "V3-SS-SEL-001",
+        "experiment_id": EXPERIMENT_ID,
+        "correction_parent": "V3-SS-SEL-001",
         "status": "PASS",
         "candidates": CAPS,
         "selection_rule": "minimum unweighted mean of four world-level effect MAEs; exact tie <=1e-12 -> smaller cap",
         "selected_max_parents": selected_cap,
         "candidate_summary": candidates,
         "world_metrics": rows,
-        "software": {
-            "numpy": np.__version__,
-            "pandas": pd.__version__,
-            "scipy": scipy.__version__,
-            "scikit_learn": sklearn.__version__,
-        },
+        "corrected_anchor_counts": anchor_counts,
+        "mc_seed_namespace_preserved_from": MC_SEED_NAMESPACE,
+        "software": {"numpy": np.__version__, "pandas": pd.__version__, "scipy": scipy.__version__, "scikit_learn": sklearn.__version__},
         "code_sha256": sha256_file(__file__),
         "guardrails": {
             "confirmatory_worlds_generated": 0,
@@ -378,17 +354,18 @@ def main():
             "estimator_private_SCM_access_during_fit": False,
             "private_development_oracle_access_only_in_scorer": True,
             "candidate_set_changed_after_inspection": False,
+            "split_local_trajectory_ids_qualified_by_split": True,
+            "standardization_anchor_units_per_world": 1500,
         },
     }
-    write_json(outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_RESULTS.json", result)
-    write_json(outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_DETAILS.json", details)
-    world_metrics.to_csv(
-        outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_WORLD_METRICS.csv",
-        index=False,
-    )
+    write_json(outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_RESULTS.json", result)
+    write_json(outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_DETAILS.json", details)
+    world_metrics.to_csv(outdir / "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_WORLD_METRICS.csv", index=False)
 
     frozen = {
-        "experiment_id": "V3-SS-SEL-001",
+        "status": "ACTIVE",
+        "experiment_id": EXPERIMENT_ID,
+        "correction_parent": "V3-SS-SEL-001",
         "max_parents": selected_cap,
         "screening": "L1 logistic conditional screening",
         "screening_C": SCREENING_C,
@@ -403,13 +380,15 @@ def main():
         "admissible_lag1": "full public observed history",
         "time0_lag1": 0,
         "intervention_mc_reps_per_anchor": MC_REPS,
+        "standardization_anchor_units_per_world": 1500,
+        "split_local_trajectory_ids_qualified_by_split": True,
         "selection_candidates": CAPS,
         "selection_primary_score": "unweighted mean of four development-world effect MAEs",
         "confirmatory_tuning_allowed": False,
         "selection_code_sha256": sha256_file(__file__),
         "software": result["software"],
     }
-    write_json(outdir / "FROZEN_SEMISYNTHETIC_ESTIMATOR.json", frozen)
+    write_json(outdir / "FROZEN_SEMISYNTHETIC_ESTIMATOR_C1.json", frozen)
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
