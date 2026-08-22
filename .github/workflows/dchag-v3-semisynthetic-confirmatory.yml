@@ -1,0 +1,324 @@
+name: DCHAG v3 semisynthetic confirmatory RQ1
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-semisynth-confirm.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  generate-confirmatory:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+
+      - name: Run builder and confirmatory guardrail tests
+        run: |
+          pytest -q experiments/v3/02_semisynthetic/test_build_semisynthetic_oracle.py
+          pytest -q experiments/v3/02_semisynthetic/test_select_semisynthetic_estimator.py
+          pytest -q experiments/v3/02_semisynthetic/test_semisynthetic_confirmatory_pipeline.py
+          python -m py_compile \
+            experiments/v3/02_semisynthetic/build_semisynthetic_oracle.py \
+            experiments/v3/02_semisynthetic/run_semisynthetic_confirmatory_estimators.py \
+            experiments/v3/02_semisynthetic/run_semisynthetic_confirmatory_estimators_c1.py \
+            experiments/v3/02_semisynthetic/score_semisynthetic_confirmatory.py
+
+      - name: Verify active corrected estimator freeze
+        run: |
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          p='experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'
+          x=json.load(open(p))
+          assert x['status']=='ACTIVE'
+          assert x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8
+          assert x['standardization_anchor_units_per_world']==1500
+          assert x['split_local_trajectory_ids_qualified_by_split']
+          assert not x['confirmatory_tuning_allowed']
+          print('CORRECTED_ESTIMATOR_FREEZE=PASS')
+          PY
+
+      - name: Download immutable LANL 300s anchor artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dchag-lanl
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9453590911/zip" \
+            -o /tmp/dchag-lanl/parent.zip
+          echo 'd6cb979953d4f68bd45b464ee74105dcd4b41ed1d41c976889d7bb931028150b  /tmp/dchag-lanl/parent.zip' | sha256sum -c -
+          unzip -q /tmp/dchag-lanl/parent.zip -d /tmp/dchag-lanl/data
+          echo '6c45852d95ce583aa95e39d6560ce2ef61a8f1e84e51c01cc38292c113cd1d22  /tmp/dchag-lanl/data/LANL_TRAJECTORY_300S.csv.gz' | sha256sum -c -
+
+      - name: Generate the 16 frozen confirmatory worlds
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-ss-confirm
+          python experiments/v3/02_semisynthetic/build_semisynthetic_oracle.py \
+            --trajectory /tmp/dchag-lanl/data/LANL_TRAJECTORY_300S.csv.gz \
+            --outdir /tmp/dchag-ss-confirm \
+            --stage confirmatory \
+            --oracle-reps 100
+
+      - name: Validate generated confirmatory world set
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/dchag-ss-confirm')
+          summary=json.loads((root/'SEMISYNTHETIC_CONFIRMATORY_BUILD_SUMMARY.json').read_text())
+          worlds=sorted(summary['worlds'])
+          assert len(worlds)==16
+          assert len(list((root/'public').iterdir()))==16
+          assert len(list((root/'private').iterdir()))==16
+          assert all(v['oracle_effects'][c]['mc_reps_per_anchor']==100 for v in summary['worlds'].values() for c in ['C1','C2','C3','C4'])
+          assert all(v['oracle_effects'][c]['anchor_units']==1500 for v in summary['worlds'].values() for c in ['C1','C2','C3','C4'])
+          g=summary['guardrails']
+          assert not g['attack_or_red_team_labels_read']
+          assert not g['LANL_defensive_intervention_inferred']
+          assert not g['real_anchor_treated_as_causal_truth']
+          assert not g['hidden_confounder_present']
+          assert not g['confirmatory_hyperparameter_tuning']
+          assert not g['confirmatory_world_replacement']
+          print('CONFIRMATORY_GENERATION_GUARDRAILS=PASS')
+          PY
+
+      - name: Create physically separated public and private artifacts
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/ss-public /tmp/ss-private
+          mkdir -p /tmp/ss-public /tmp/ss-private
+          cp -R /tmp/dchag-ss-confirm/public /tmp/ss-public/public
+          cp -R /tmp/dchag-ss-confirm/private /tmp/ss-private/private
+          cp /tmp/dchag-ss-confirm/SEMISYNTHETIC_CONFIRMATORY_BUILD_SUMMARY.json /tmp/ss-private/
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          def sha(p):
+              h=hashlib.sha256();
+              with open(p,'rb') as f:
+                  for b in iter(lambda:f.read(1<<20),b''): h.update(b)
+              return h.hexdigest()
+          pub=Path('/tmp/ss-public'); prv=Path('/tmp/ss-private')
+          public_files=sorted(p for p in pub.rglob('*') if p.is_file())
+          private_files=sorted(p for p in prv.rglob('*') if p.is_file())
+          assert public_files and private_files
+          assert not any('private' in str(p.relative_to(pub)).lower() or p.name in {'world.json','oracle_effects.json','true_edges.json'} for p in public_files)
+          assert not any('/public/' in ('/'+str(p.relative_to(prv)).replace('\\','/')) for p in private_files)
+          (pub/'PUBLIC_MANIFEST.json').write_text(json.dumps({'experiment_id':'V3-SS-CONF-001','worlds':16,'files':{str(p.relative_to(pub)):sha(p) for p in public_files},'contains_private_SCM_or_oracle':False},indent=2,sort_keys=True)+'\n')
+          (prv/'PRIVATE_MANIFEST.json').write_text(json.dumps({'experiment_id':'V3-SS-CONF-001','worlds':16,'files':{str(p.relative_to(prv)):sha(p) for p in private_files}},indent=2,sort_keys=True)+'\n')
+          print('PUBLIC_PRIVATE_PHYSICAL_SEPARATION=PASS')
+          PY
+
+      - name: Upload public confirmatory benchmark
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-confirm-public
+          path: /tmp/ss-public/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload private confirmatory scoring material
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-confirm-private
+          path: /tmp/ss-private/
+          retention-days: 90
+          if-no-files-found: error
+
+  estimate-world:
+    needs: generate-confirmatory
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        world:
+          - confirm_helpdesk_identity_1
+          - confirm_helpdesk_identity_2
+          - confirm_helpdesk_identity_3
+          - confirm_helpdesk_identity_4
+          - confirm_bec_payment_1
+          - confirm_bec_payment_2
+          - confirm_bec_payment_3
+          - confirm_bec_payment_4
+          - confirm_exfiltration_1
+          - confirm_exfiltration_2
+          - confirm_exfiltration_3
+          - confirm_exfiltration_4
+          - confirm_itot_change_1
+          - confirm_itot_change_2
+          - confirm_itot_change_3
+          - confirm_itot_change_4
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+
+      - name: Download public artifact only
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-confirm-public
+          path: /tmp/ss-public
+
+      - name: Enforce estimator physical privacy boundary
+        run: |
+          set -euo pipefail
+          test -d /tmp/ss-public/public
+          test ! -e /tmp/ss-public/private
+          ! find /tmp/ss-public -type f \( -name 'world.json' -o -name 'oracle_effects.json' -o -name 'true_edges.json' \) | grep -q .
+          echo 'ESTIMATOR_PRIVATE_INPUT_ABSENT=PASS'
+
+      - name: Estimate and freeze ${{ matrix.world }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/ss-estimation
+          python experiments/v3/02_semisynthetic/run_semisynthetic_confirmatory_estimators_c1.py \
+            --public-root /tmp/ss-public/public \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --world '${{ matrix.world }}' \
+            --outdir /tmp/ss-estimation
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          world='${{ matrix.world }}'
+          root=Path('/tmp/ss-estimation')/world
+          m=json.loads((root/'run_metadata.json').read_text())
+          f=json.loads((root/'freeze_manifest.json').read_text())
+          assert m['selection_experiment_id']=='V3-SS-SEL-001-C1'
+          assert m['train_anchor_units']==1100 and m['test_anchor_units']==400 and m['standardization_anchor_units']==1500
+          assert m['split_local_trajectory_ids_qualified_by_split']
+          assert not m['estimator_private_SCM_access']
+          assert not m['confirmatory_hyperparameter_tuning']
+          assert not m['confirmatory_world_replacement']
+          assert f['status']=='estimation_outputs_frozen_before_private_scoring'
+          assert f['standardization_anchor_units']==1500
+          print('WORLD_ESTIMATION_FREEZE=PASS',world)
+          PY
+
+      - name: Upload frozen estimation ${{ matrix.world }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-estimate-${{ matrix.world }}
+          path: /tmp/ss-estimation/
+          retention-days: 90
+          if-no-files-found: error
+
+  score-confirmatory:
+    needs:
+      - generate-confirmatory
+      - estimate-world
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen scoring dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy==2.4.6 pandas==3.0.5 scipy==1.17.0
+
+      - name: Download private scoring artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-confirm-private
+          path: /tmp/ss-private
+
+      - name: Download all already frozen estimation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-ss-estimate-*
+          path: /tmp/ss-estimation
+          merge-multiple: true
+
+      - name: Verify frozen estimation set before private scoring
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('/tmp/ss-estimation')
+          worlds=sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith('confirm_'))
+          assert len(worlds)==16, [p.name for p in worlds]
+          def sha(p):
+              h=hashlib.sha256();
+              with open(p,'rb') as f:
+                  for b in iter(lambda:f.read(1<<20),b''): h.update(b)
+              return h.hexdigest()
+          for w in worlds:
+              m=json.loads((w/'freeze_manifest.json').read_text())
+              assert m['status']=='estimation_outputs_frozen_before_private_scoring'
+              assert m['standardization_anchor_units']==1500
+              for name,expected in m['files'].items(): assert sha(w/name)==expected
+          print('ALL_16_ESTIMATION_OUTPUTS_FROZEN=PASS')
+          PY
+
+      - name: Score against private oracle only after freeze verification
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/ss-scored
+          python experiments/v3/02_semisynthetic/score_semisynthetic_confirmatory.py \
+            --estimation-root /tmp/ss-estimation \
+            --private-root /tmp/ss-private/private \
+            --outdir /tmp/ss-scored
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads((Path('/tmp/ss-scored')/'SEMISYNTHETIC_CONFIRMATORY_RESULTS.json').read_text())
+          assert r['experiment_id']=='V3-SS-CONF-001'
+          assert r['n_confirmatory_worlds']==16
+          assert set(r['models'])=={'DCHAG_Learned','Dense_Sequential_GFormula','Observational_Association'}
+          assert r['paired_dchag_dense_inference']['n_independent_worlds']==16
+          assert r['paired_dchag_dense_inference']['bootstrap_reps']==10000
+          assert r['paired_dchag_dense_inference']['exact_signflip_assignments']==65536
+          g=r['guardrails']
+          assert not g['confirmatory_hyperparameter_tuning']
+          assert not g['confirmatory_world_replacement']
+          assert not g['estimator_private_SCM_access']
+          assert g['estimation_outputs_frozen_before_private_scoring']
+          print('CONFIRMATORY_SCORING_GUARDRAILS=PASS')
+          PY
+          (cd /tmp/ss-scored && sha256sum * > RESULT_SHA256.txt)
+          python -m pip freeze > /tmp/ss-scored/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/ss-scored/WORKFLOW_HEAD.txt
+
+      - name: Upload scored confirmatory result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-confirmatory-results
+          path: /tmp/ss-scored/
+          retention-days: 90
+          if-no-files-found: error
