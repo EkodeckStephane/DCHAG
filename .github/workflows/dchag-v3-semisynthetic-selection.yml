@@ -2,9 +2,13 @@ name: DCHAG v3 semisynthetic estimator selection
 
 on:
   pull_request:
-    branches: [dchag-v3]
+    branches:
+      - dchag-v3
     paths:
+      - 'experiments/v3/02_semisynthetic/**'
       - '.github/triggers/dchag-v3-semisynth-selection.txt'
+      - '.github/workflows/dchag-v3-semisynthetic-selection.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
