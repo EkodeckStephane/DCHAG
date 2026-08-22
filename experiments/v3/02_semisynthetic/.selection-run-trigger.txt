@@ -1,0 +1,2 @@
+V3-SS-SEL-001 execution trigger after base workflow alignment.
+No scientific source or protocol change.
