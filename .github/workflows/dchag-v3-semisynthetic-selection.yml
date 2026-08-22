@@ -1,12 +1,11 @@
-name: DCHAG v3 semisynthetic estimator selection
+name: DCHAG v3 semisynthetic estimator selection C1
 
 on:
   pull_request:
     branches:
       - dchag-v3
     paths:
-      - 'experiments/v3/02_semisynthetic/**'
-      - '.github/triggers/dchag-v3-semisynth-selection.txt'
+      - '.github/triggers/dchag-v3-semisynth-selection-c1.txt'
       - '.github/workflows/dchag-v3-semisynthetic-selection.yml'
   workflow_dispatch:
 
@@ -15,7 +14,7 @@ permissions:
   actions: read
 
 jobs:
-  select-estimator:
+  select-estimator-c1:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout exact PR revision
@@ -31,11 +30,11 @@ jobs:
           python -m pip install --disable-pip-version-check \
             numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
 
-      - name: Run frozen selection tests
+      - name: Run correction regression tests
         run: |
           pytest -q experiments/v3/02_semisynthetic/test_select_semisynthetic_estimator.py
 
-      - name: Download immutable Stage-A artifact
+      - name: Download immutable original Stage-A artifact
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -50,9 +49,10 @@ jobs:
           echo 'ca33420fe43da84d85b2785f9a845534cc22399f2ea30ed9fda416c64ecbecb5  /tmp/dchag-ss-dev/stage-a.zip' | sha256sum -c -
           unzip -q /tmp/dchag-ss-dev/stage-a.zip -d /tmp/dchag-ss-dev/data
 
-      - name: Enforce development-confirmatory firewall
+      - name: Enforce development-confirmatory firewall and split-local ID condition
         run: |
           python - <<'PY'
+          import pandas as pd
           from pathlib import Path
           root=Path('/tmp/dchag-ss-dev/data')
           public=sorted(p.name for p in (root/'public').iterdir() if p.is_dir())
@@ -61,34 +61,46 @@ jobs:
           assert public == expected, public
           assert private == expected, private
           assert not any('confirm' in x.lower() for x in public+private)
-          print('STAGE_A_FIREWALL=PASS')
+          for world in expected:
+              train=pd.read_csv(root/'public'/world/'train.csv', usecols=['trajectory_id'])
+              test=pd.read_csv(root/'public'/world/'test.csv', usecols=['trajectory_id'])
+              assert train.trajectory_id.nunique()==1100
+              assert test.trajectory_id.nunique()==400
+              assert len(set(train.trajectory_id.unique()) & set(test.trajectory_id.unique()))==400
+          print('STAGE_A_C1_FIREWALL_AND_ID_DEFECT_REPRODUCED=PASS')
           PY
 
-      - name: Run frozen candidate selection
+      - name: Run corrected frozen candidate selection
         run: |
           set -euo pipefail
-          rm -rf /tmp/dchag-ss-selection
+          rm -rf /tmp/dchag-ss-selection-c1
           python experiments/v3/02_semisynthetic/select_semisynthetic_estimator.py \
             --dev-root /tmp/dchag-ss-dev/data \
-            --outdir /tmp/dchag-ss-selection
-          python -m pip freeze > /tmp/dchag-ss-selection/SOFTWARE_FREEZE.txt
-          git rev-parse HEAD > /tmp/dchag-ss-selection/WORKFLOW_HEAD.txt
+            --outdir /tmp/dchag-ss-selection-c1
+          python -m pip freeze > /tmp/dchag-ss-selection-c1/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/dchag-ss-selection-c1/WORKFLOW_HEAD.txt
 
-      - name: Validate frozen selection output
+      - name: Validate corrected frozen selection output
         run: |
           python - <<'PY'
           import json, math
           from pathlib import Path
-          root=Path('/tmp/dchag-ss-selection')
-          r=json.loads((root/'SEMISYNTHETIC_ESTIMATOR_SELECTION_RESULTS.json').read_text())
-          f=json.loads((root/'FROZEN_SEMISYNTHETIC_ESTIMATOR.json').read_text())
-          assert r['experiment_id']=='V3-SS-SEL-001'
+          root=Path('/tmp/dchag-ss-selection-c1')
+          r=json.loads((root/'SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_RESULTS.json').read_text())
+          f=json.loads((root/'FROZEN_SEMISYNTHETIC_ESTIMATOR_C1.json').read_text())
+          assert r['experiment_id']=='V3-SS-SEL-001-C1'
+          assert r['correction_parent']=='V3-SS-SEL-001'
           assert r['candidates']==[6,8,10]
           assert r['selected_max_parents'] in [6,8,10]
+          assert f['status']=='ACTIVE'
           assert f['max_parents']==r['selected_max_parents']
           assert f['screening_C']==0.05 and f['local_model_C']==0.7
           assert f['intervention_mc_reps_per_anchor']==100
+          assert f['standardization_anchor_units_per_world']==1500
+          assert f['split_local_trajectory_ids_qualified_by_split']
           assert len(r['world_metrics'])==12
+          assert all(row['standardization_anchor_units']==1500 for row in r['world_metrics'])
+          assert all(v['standardization']==1500 for v in r['corrected_anchor_counts'].values())
           for row in r['world_metrics']:
               assert math.isfinite(row['effect_mae'])
               assert math.isfinite(row['signed_bias'])
@@ -99,13 +111,15 @@ jobs:
           assert not g['estimator_private_SCM_access_during_fit']
           assert g['private_development_oracle_access_only_in_scorer']
           assert not g['candidate_set_changed_after_inspection']
-          print('V3_SS_SEL_001_VALIDATION=PASS')
+          assert g['split_local_trajectory_ids_qualified_by_split']
+          assert g['standardization_anchor_units_per_world']==1500
+          print('V3_SS_SEL_001_C1_VALIDATION=PASS')
           PY
 
-      - name: Upload frozen selection artifact
+      - name: Upload corrected frozen selection artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dchag-v3-semisynthetic-estimator-selection
-          path: /tmp/dchag-ss-selection/
+          name: dchag-v3-semisynthetic-estimator-selection-c1
+          path: /tmp/dchag-ss-selection-c1/
           retention-days: 90
           if-no-files-found: error
