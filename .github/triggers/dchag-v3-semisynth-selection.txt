@@ -1,3 +1,4 @@
 V3-SS-SEL-001
 Protocol: experiments/v3/02_semisynthetic/SEMISYNTHETIC_ESTIMATOR_SELECTION_PROTOCOL.md
 No confirmatory world generation permitted.
+Synchronize event: execute frozen selector after workflow/base-state verification.
