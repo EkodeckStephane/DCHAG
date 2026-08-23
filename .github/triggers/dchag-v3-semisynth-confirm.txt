@@ -1,0 +1,5 @@
+V3-SS-CONF-001
+Protocol: experiments/v3/02_semisynthetic/SEMISYNTHETIC_CONFIRMATORY_EXECUTION_PROTOCOL.md
+Amendment: experiments/v3/02_semisynthetic/SEMISYNTHETIC_CONFIRMATORY_EXECUTION_PROTOCOL_C1_AMENDMENT.md
+Frozen estimator: V3-SS-SEL-001-C1, max_parents=8, 1500 standardization anchors/world.
+No confirmatory tuning or world replacement permitted.
