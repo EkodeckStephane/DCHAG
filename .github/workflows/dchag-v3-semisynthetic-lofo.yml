@@ -1,0 +1,325 @@
+name: DCHAG v3 semisynthetic LOFO transport RQ2
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-semisynth-lofo.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  prepare-clean-inputs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+
+      - name: Run LOFO regression and guardrail tests
+        run: |
+          pytest -q experiments/v3/03_transportability/test_semisynthetic_lofo.py
+          python -m py_compile \
+            experiments/v3/03_transportability/prepare_semisynthetic_lofo_inputs.py \
+            experiments/v3/03_transportability/run_semisynthetic_lofo_estimators.py \
+            experiments/v3/03_transportability/score_semisynthetic_lofo.py
+
+      - name: Verify frozen RQ2 protocol and corrected estimator
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/03_transportability/SEMISYNTHETIC_LOFO_TRANSPORT_PROTOCOL.md
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'))
+          assert x['status']=='ACTIVE'
+          assert x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8
+          assert x['standardization_anchor_units_per_world']==1500
+          assert x['split_local_trajectory_ids_qualified_by_split']
+          assert not x['confirmatory_tuning_allowed']
+          print('LOFO_FROZEN_ESTIMATOR=PASS')
+          PY
+
+      - name: Download immutable audited RQ1 public benchmark artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-public /tmp/lofo-clean
+          mkdir -p /tmp/rq1-public /tmp/lofo-clean
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" \
+            -o /tmp/rq1-public.zip
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-public.zip -d /tmp/rq1-public
+
+      - name: Build four physically firewalled LOFO inputs
+        run: |
+          set -euo pipefail
+          python experiments/v3/03_transportability/prepare_semisynthetic_lofo_inputs.py \
+            --public-root /tmp/rq1-public \
+            --outroot /tmp/lofo-clean
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          fams=['bec_payment','exfiltration','helpdesk_identity','itot_change']
+          root=Path('/tmp/lofo-clean')
+          for fam in fams:
+              f=root/fam
+              m=json.loads((f/'LOFO_INPUT_MANIFEST.json').read_text())
+              fold=json.loads((f/'fold.json').read_text())
+              assert m['heldout_family']==fam
+              assert not m['target_endogenous_or_outcome_data_present']
+              assert not m['private_SCM_or_oracle_present']
+              assert fold['source_train_total_trajectories']==13200
+              assert fold['target_standardization_anchor_units_per_world']==1500
+              assert len(list((f/'source_train').glob('*.csv')))==12
+              assert len(list((f/'target_anchors').glob('*.npz')))==4
+              assert not any(f'confirm_{fam}_' in p.name for p in (f/'source_train').glob('*.csv'))
+          print('FOUR_LOFO_FIREWALLS=PASS')
+          PY
+
+      - name: Upload clean BEC/payment LOFO input
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-input-bec_payment
+          path: /tmp/lofo-clean/bec_payment/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload clean exfiltration LOFO input
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-input-exfiltration
+          path: /tmp/lofo-clean/exfiltration/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload clean helpdesk LOFO input
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-input-helpdesk_identity
+          path: /tmp/lofo-clean/helpdesk_identity/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload clean IT/OT LOFO input
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-input-itot_change
+          path: /tmp/lofo-clean/itot_change/
+          retention-days: 90
+          if-no-files-found: error
+
+  estimate-heldout-family:
+    needs: prepare-clean-inputs
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        family:
+          - bec_payment
+          - exfiltration
+          - helpdesk_identity
+          - itot_change
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+
+      - name: Download only firewalled input for held-out family
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-input-${{ matrix.family }}
+          path: /tmp/lofo-input
+
+      - name: Enforce physical target-family and private-oracle boundary
+        run: |
+          set -euo pipefail
+          test ! -d /tmp/rq1-public
+          test ! -d /tmp/rq1-private
+          test ! -d /tmp/ss-private
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          fam=os.environ['FAMILY']
+          root=Path('/tmp/lofo-input')
+          manifest=json.loads((root/'LOFO_INPUT_MANIFEST.json').read_text())
+          fold=json.loads((root/'fold.json').read_text())
+          assert manifest['heldout_family']==fam
+          assert not manifest['target_endogenous_or_outcome_data_present']
+          assert not manifest['private_SCM_or_oracle_present']
+          assert fold['heldout_family']==fam
+          assert len(fold['source_worlds'])==12 and len(fold['target_worlds'])==4
+          assert not any(f'confirm_{fam}_' in p.name for p in (root/'source_train').glob('*.csv'))
+          forbidden={'world.json','oracle_effects.json','true_edges.json','test.csv'}
+          assert not any(p.name in forbidden for p in root.rglob('*') if p.is_file())
+          print('ESTIMATOR_PHYSICAL_FIREWALL=PASS')
+          PY
+        env:
+          FAMILY: ${{ matrix.family }}
+
+      - name: Fit source mechanisms and freeze held-out-family estimates
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/lofo-estimate
+          mkdir -p /tmp/lofo-estimate/${{ matrix.family }}
+          python experiments/v3/03_transportability/run_semisynthetic_lofo_estimators.py \
+            --input-root /tmp/lofo-input \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --heldout-family ${{ matrix.family }} \
+            --outdir /tmp/lofo-estimate/${{ matrix.family }}
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          fam=os.environ['FAMILY']
+          root=Path('/tmp/lofo-estimate')/fam
+          md=json.loads((root/'run_metadata.json').read_text())
+          fr=json.loads((root/'FREEZE_MANIFEST.json').read_text())
+          assert md['heldout_family']==fam
+          assert md['source_train_trajectories']==13200
+          assert not md['target_endogenous_or_outcome_data_used_for_fit']
+          assert not md['target_family_used_for_hyperparameter_selection']
+          assert not md['private_SCM_or_oracle_access']
+          assert md['target_standardization_anchor_only']
+          assert fr['frozen_before_private_scoring']
+          print('LOFO_ESTIMATION_FREEZE=PASS')
+          PY
+        env:
+          FAMILY: ${{ matrix.family }}
+
+      - name: Upload frozen held-out-family estimate
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-lofo-estimate-${{ matrix.family }}
+          path: /tmp/lofo-estimate/${{ matrix.family }}/
+          retention-days: 90
+          if-no-files-found: error
+
+  score-lofo:
+    needs:
+      - prepare-clean-inputs
+      - estimate-heldout-family
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen scoring dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0
+
+      - name: Download all already frozen LOFO estimation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-ss-lofo-estimate-*
+          path: /tmp/lofo-estimations
+          merge-multiple: false
+
+      - name: Verify all four estimator freezes before any scoring material download
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'experiments/v3/03_transportability')
+          import score_semisynthetic_lofo as s
+          folds=s.discover_folds(__import__('pathlib').Path('/tmp/lofo-estimations'))
+          assert sorted(folds)==sorted(s.FAMILIES)
+          print('FOUR_FROZEN_LOFO_ESTIMATIONS=PASS')
+          PY
+          test ! -e /tmp/rq1-private.zip
+          test ! -e /tmp/rq1-public-score.zip
+          test ! -e /tmp/rq1-results.zip
+
+      - name: Download immutable private/public scoring material only after freeze verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-private /tmp/rq1-public-score /tmp/rq1-results
+          mkdir -p /tmp/rq1-private /tmp/rq1-public-score /tmp/rq1-results
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870511/zip" -o /tmp/rq1-private.zip
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" -o /tmp/rq1-public-score.zip
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489911175/zip" -o /tmp/rq1-results.zip
+          echo '898dde43e340d2852c43eab940fe46b6dc9652d2620dcf79705c061fcad03278  /tmp/rq1-private.zip' | sha256sum -c -
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public-score.zip' | sha256sum -c -
+          echo 'dad2d38262c01f5f499c58b1b44229a8908fc29cb7cf6d41fefb51461d3f6a24  /tmp/rq1-results.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-private.zip -d /tmp/rq1-private
+          unzip -q /tmp/rq1-public-score.zip -d /tmp/rq1-public-score
+          unzip -q /tmp/rq1-results.zip -d /tmp/rq1-results
+          test -f /tmp/rq1-private/private/confirm_bec_payment_1/oracle_effects.json
+          test -f /tmp/rq1-public-score/public/confirm_bec_payment_1/test.csv
+          test -f /tmp/rq1-results/world_metrics.csv
+
+      - name: Score frozen LOFO estimates against target oracle
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/lofo-results
+          mkdir -p /tmp/lofo-results
+          python experiments/v3/03_transportability/score_semisynthetic_lofo.py \
+            --estimations-root /tmp/lofo-estimations \
+            --public-root /tmp/rq1-public-score/public \
+            --private-root /tmp/rq1-private/private \
+            --rq1-world-metrics /tmp/rq1-results/world_metrics.csv \
+            --outdir /tmp/lofo-results
+          echo "${GITHUB_SHA}" > /tmp/lofo-results/WORKFLOW_HEAD.txt
+          python -m pip freeze | sort > /tmp/lofo-results/SOFTWARE_FREEZE.txt
+          python - <<'PY'
+          import json
+          x=json.load(open('/tmp/lofo-results/SEMISYNTHETIC_LOFO_RESULTS.json'))
+          assert x['status']=='PASS'
+          assert x['analysis_class']=='locked_secondary_post_RQ1'
+          assert x['n_folds']==4 and x['n_target_worlds']==16
+          g=x['guardrails']
+          assert g['four_folds_retained'] and g['sixteen_target_worlds_retained']
+          assert not g['target_endogenous_or_outcome_data_used_for_fit']
+          assert not g['target_family_used_for_hyperparameter_selection']
+          assert not g['estimator_private_SCM_access']
+          assert g['estimation_outputs_frozen_before_private_scoring']
+          assert g['target_standardization_anchor_units']==1500
+          assert g['mc_reps_per_anchor']==100
+          print('LOFO_SCORING_GUARDRAILS=PASS')
+          PY
+
+      - name: Upload scored LOFO result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-lofo-results
+          path: /tmp/lofo-results/
+          retention-days: 90
+          if-no-files-found: error
