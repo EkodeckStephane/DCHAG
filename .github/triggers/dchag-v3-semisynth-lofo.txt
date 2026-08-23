@@ -1,0 +1,5 @@
+V3-SS-LOFO-001
+Protocol: experiments/v3/03_transportability/SEMISYNTHETIC_LOFO_TRANSPORT_PROTOCOL.md
+Analysis class: locked secondary post-RQ1.
+Four fixed leave-one-family-out folds; no target-family outcome/mechanism fitting, no retuning, no fold replacement.
+Target standardization: 1500 anchor-only units/world; 100 paired MC replicates per anchor/regime.
