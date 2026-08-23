@@ -1,0 +1,151 @@
+{
+  "experiment_id": "V3-SS-CONF-001",
+  "status": "PASS",
+  "scope": "RQ1 confirmatory causal-effect recovery on the explicit real-trajectory-anchored semi-synthetic SCM benchmark",
+  "execution": {
+    "workflow_run_id": 32626617080,
+    "generation_job_id": 97162818450,
+    "scoring_job_id": 97163303803,
+    "execution_pr": 12,
+    "execution_pr_policy": "execution-only; close without merge after evidence retention",
+    "trigger_head_sha": "34e9e34173006185116814fa2b9c8ce1aad72689",
+    "workflow_pr_merge_sha": "c125a8026d5c671505694644c2784fe991ba704f",
+    "active_selection_experiment": "V3-SS-SEL-001-C1",
+    "active_frozen_estimator_sha256": "d6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31",
+    "max_parents": 8,
+    "standardization_anchor_units_per_world": 1500,
+    "intervention_mc_reps_per_anchor_regime": 100,
+    "n_confirmatory_worlds": 16,
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260822,
+    "exact_signflip_assignments": 65536
+  },
+  "artifacts": {
+    "public_confirmatory": {
+      "artifact_id": 9489870327,
+      "name": "dchag-v3-ss-confirm-public",
+      "sha256": "0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3"
+    },
+    "private_confirmatory": {
+      "artifact_id": 9489870511,
+      "name": "dchag-v3-ss-confirm-private",
+      "sha256": "898dde43e340d2852c43eab940fe46b6dc9652d2620dcf79705c061fcad03278"
+    },
+    "final_scored_result": {
+      "artifact_id": 9489911175,
+      "name": "dchag-v3-semisynthetic-confirmatory-results",
+      "sha256": "dad2d38262c01f5f499c58b1b44229a8908fc29cb7cf6d41fefb51461d3f6a24"
+    },
+    "estimation_artifacts": {
+      "confirm_helpdesk_identity_1": {"artifact_id": 9489899734, "sha256": "b11ad950180a7205b35edd8a93af085fbaab17f3d0ceb741ca3eab5c74a4420c"},
+      "confirm_helpdesk_identity_2": {"artifact_id": 9489895438, "sha256": "83c2e60a92e732d9a976614ae46d28df7ab97501e9a8cc0ebe033158dfcd2c7e"},
+      "confirm_helpdesk_identity_3": {"artifact_id": 9489905022, "sha256": "e727fd8f7aa315f1ae186fdde75b94130e047c0b5a949ac68c78087d51665094"},
+      "confirm_helpdesk_identity_4": {"artifact_id": 9489906262, "sha256": "bd590a376f6e7f89d8f2ed97e4d92384c156c719e5b203db554cb87f52cb10cf"},
+      "confirm_bec_payment_1": {"artifact_id": 9489893823, "sha256": "faa2c569b782cf4c5d17285e28e27ece5dcaa907050b3151f7129da5a1c13543"},
+      "confirm_bec_payment_2": {"artifact_id": 9489901178, "sha256": "6f5e11fc7d96690a7da575d5eff66d802a12a9f32251d2ac44924718e13dbb96"},
+      "confirm_bec_payment_3": {"artifact_id": 9489896954, "sha256": "8b91607840753812fe9626932943b24e8a472d631b731f1dadf48559d9add930"},
+      "confirm_bec_payment_4": {"artifact_id": 9489902899, "sha256": "9954e834e61f4338d3cf031f1365ef5a43cf477b00375e860f9e1fab17a105bd"},
+      "confirm_exfiltration_1": {"artifact_id": 9489900172, "sha256": "8b6271aec298ee4ef16ed9e1b9f80eef144f324221b5a648ba6dd657cd48e106"},
+      "confirm_exfiltration_2": {"artifact_id": 9489902090, "sha256": "72939c3bcc0e68b8ea1c027b73d2a5a41240ce0db889d0681c47119e8938d31e"},
+      "confirm_exfiltration_3": {"artifact_id": 9489903545, "sha256": "b526c8cae47dae350659b0feb8923a7cc283f9a2f520c25c85496ab79de1229e"},
+      "confirm_exfiltration_4": {"artifact_id": 9489903840, "sha256": "871c07647668f80621c53fcbd50bdb45b2756d62168de9671cb6bba9f84bbd29"},
+      "confirm_itot_change_1": {"artifact_id": 9489900080, "sha256": "63aeda3e38772377325e805252eaa62145c6c1f56772efa0bd5ada79ad04e0ff"},
+      "confirm_itot_change_2": {"artifact_id": 9489900756, "sha256": "e8fd09e7b19401320500df82347e7c25293f7520037dc5e585057a1475e24c8a"},
+      "confirm_itot_change_3": {"artifact_id": 9489899846, "sha256": "dd250f87d7869948dc5760b888b49c7eebaf7c08810b4c093121ffe8757bc455"},
+      "confirm_itot_change_4": {"artifact_id": 9489901352, "sha256": "a393de1750ac72c9c2e16b119b1981ddd3c536d5c37e93352d945a7b142c6558"}
+    }
+  },
+  "result_member_sha256": {
+    "SEMISYNTHETIC_CONFIRMATORY_RESULTS.json": "ef656ff8fedf8ea217f7271d1b6b6159e99f489833c8d54f5e4dcb2b6c655497",
+    "dchag_edge_metrics.csv": "f13073e2a9dcfab9661484c7d27b81a4339bce7a48fd3faf48e6b1555b4f9bc7",
+    "effect_accuracy.csv": "f87095afc24ed60582cbebd3005685af06b4d605102b3f8700d9c9d1a67ff67a",
+    "family_summary.csv": "28c287546456e444490d8996baf9f7753bd068849147eb4b236ee591c6d0a339",
+    "model_summary.csv": "c848bfa324eb5cf948315fa23892afe994579059216d14156bda16ac89a68e90",
+    "paired_dchag_dense_inference.json": "3cf0688e95bcbf2bb5cf59b16a833402a5f4e115b031254fc4fadbff4207f808",
+    "public_diagnostics.json": "81bb10c4819d32914e820f58221bf623310b1389e9a2c663858cd63a1a612531",
+    "world_metrics.csv": "aa65fcbeb4d63865990920a4922fdc7c1ca756e547e8c691cb70628ea44190a7"
+  },
+  "models": {
+    "DCHAG_Learned": {
+      "effect_mae": 0.011311249999999998,
+      "signed_bias": 0.0008691666666666302,
+      "kendall": 0.8125000000000001,
+      "spearman": 0.8624999999999999,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.128238421875,
+      "bss": 0.0026664100864682086
+    },
+    "Dense_Sequential_GFormula": {
+      "effect_mae": 0.011806770833333355,
+      "signed_bias": -0.008582395833333374,
+      "kendall": 0.875,
+      "spearman": 0.9125,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.127189921875,
+      "bss": 0.008866817098507132
+    },
+    "Observational_Association": {
+      "effect_mae": 0.04873060340473285,
+      "signed_bias": -0.04770147988968933,
+      "kendall": 0.5625000000000001,
+      "spearman": 0.6499999999999999,
+      "top_control_accuracy": 0.875,
+      "normalized_regret": 0.053339638385267105,
+      "causal_interpretation_permitted": false
+    }
+  },
+  "paired_dchag_dense_inference": {
+    "estimand": "world-level MAE_DCHAG - MAE_Dense_Sequential_GFormula",
+    "n_independent_worlds": 16,
+    "mean_difference": -0.0004955208333333577,
+    "bootstrap_95_ci": [-0.002568289062500013, 0.0017177447916666391],
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260822,
+    "exact_signflip_assignments": 65536,
+    "exact_two_sided_p": 0.6671142578125,
+    "interpretation": "DCHAG is numerically slightly lower in mean effect MAE, but the paired confirmatory evidence does not support superiority or a non-zero difference. Report effect fidelity as competitive/statistically compatible, not superior and not formally equivalent because no equivalence margin was pre-specified."
+  },
+  "dchag_structural_recovery": {
+    "mean_learned_edges": 84.625,
+    "precision": 0.7044514393928321,
+    "recall": 0.9684360126916975,
+    "f1": 0.8153347498963255,
+    "scope": "semi-synthetic SCM structural recovery only; not LANL causal-edge recovery"
+  },
+  "family_effect_mae": {
+    "bec_payment": {"DCHAG_Learned": 0.0102045833333333, "Dense_Sequential_GFormula": 0.0108529166666667, "Observational_Association": 0.0470275306},
+    "exfiltration": {"DCHAG_Learned": 0.0108516666666667, "Dense_Sequential_GFormula": 0.0127295833333333, "Observational_Association": 0.0299846804},
+    "helpdesk_identity": {"DCHAG_Learned": 0.0113945833333333, "Dense_Sequential_GFormula": 0.0130229166666667, "Observational_Association": 0.0568498526},
+    "itot_change": {"DCHAG_Learned": 0.0127941666666667, "Dense_Sequential_GFormula": 0.0106216666666667, "Observational_Association": 0.06106035}
+  },
+  "independent_audit": {
+    "public_zip_digest_matches_github": true,
+    "private_zip_digest_matches_github": true,
+    "final_result_zip_digest_matches_github": true,
+    "public_manifest_hash_mismatches": 0,
+    "private_manifest_hash_mismatches": 0,
+    "public_private_leakage_detected": false,
+    "frozen_seed_mismatches": 0,
+    "oracle_effect_records_checked": 64,
+    "oracle_effect_records_with_1500_anchors_and_100_reps": 64,
+    "final_result_member_hashes_verified": 8,
+    "model_summary_recomputed_from_world_metrics": true,
+    "paired_mean_difference_recomputed": true,
+    "bootstrap_ci_recomputed": true,
+    "exact_signflip_p_recomputed": true
+  },
+  "guardrails": {
+    "confirmatory_hyperparameter_tuning": false,
+    "confirmatory_world_replacement": false,
+    "estimator_private_SCM_access": false,
+    "estimation_outputs_frozen_before_private_scoring": true,
+    "LANL_defensive_intervention_inferred": false,
+    "attack_or_red_team_labels_read": false,
+    "hidden_confounder_present": false,
+    "real_anchor_treated_as_causal_truth": false
+  },
+  "claim_boundary": "Causal-effect recovery evidence applies only to the explicit real-trajectory-anchored semi-synthetic SCM benchmark, not to LANL causal effects or real control effectiveness.",
+  "scientific_conclusion": "V3-SS-CONF-001 completed successfully under the frozen protocol. DCHAG and dense sequential g-formula have competitive/statistically compatible causal-effect MAE on this confirmatory benchmark; there is no evidence that DCHAG is superior. DCHAG recovers the best control in all 16 worlds with zero normalized regret, as does dense-g. The observational association comparator is substantially worse and remains noncausal. Dense-g has slightly better held-out Brier/BSS. DCHAG structural recovery is strong but benchmark-specific."
+}
