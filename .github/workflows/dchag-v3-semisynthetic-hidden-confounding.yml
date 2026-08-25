@@ -1,0 +1,371 @@
+name: DCHAG v3 semisynthetic hidden confounding RQ3
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-semisynth-hidden-confounding.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  generate-hidden-confounding:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+
+      - name: Run hidden-confounding regression guardrails
+        run: |
+          pytest -q experiments/v3/04_hidden_confounding/test_semisynthetic_hidden_confounding.py
+          python -m py_compile \
+            experiments/v3/04_hidden_confounding/generate_semisynthetic_hidden_confounding.py \
+            experiments/v3/04_hidden_confounding/run_semisynthetic_hidden_confounding_estimators.py \
+            experiments/v3/04_hidden_confounding/score_semisynthetic_hidden_confounding.py
+
+      - name: Verify frozen protocol and corrected estimator
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/04_hidden_confounding/SEMISYNTHETIC_HIDDEN_CONFOUNDING_PROTOCOL.md
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'))
+          assert x['status']=='ACTIVE'
+          assert x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8
+          assert x['standardization_anchor_units_per_world']==1500
+          assert x['split_local_trajectory_ids_qualified_by_split']
+          assert not x['confirmatory_tuning_allowed']
+          print('HC_FROZEN_ESTIMATOR=PASS')
+          PY
+
+      - name: Download immutable audited RQ1 parent public and private artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-public /tmp/rq1-private /tmp/hc
+          mkdir -p /tmp/rq1-public /tmp/rq1-private /tmp/hc
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" -o /tmp/rq1-public.zip
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870511/zip" -o /tmp/rq1-private.zip
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public.zip' | sha256sum -c -
+          echo '898dde43e340d2852c43eab940fe46b6dc9652d2620dcf79705c061fcad03278  /tmp/rq1-private.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-public.zip -d /tmp/rq1-public
+          unzip -q /tmp/rq1-private.zip -d /tmp/rq1-private
+          test -d /tmp/rq1-public/public
+          test -d /tmp/rq1-private/private
+
+      - name: Generate both frozen nonzero hidden-confounding levels
+        run: |
+          set -euo pipefail
+          python experiments/v3/04_hidden_confounding/generate_semisynthetic_hidden_confounding.py \
+            --parent-public-root /tmp/rq1-public/public \
+            --parent-private-root /tmp/rq1-private/private \
+            --outdir /tmp/hc
+
+      - name: Validate generated levels and leakage firewall
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path('/tmp/hc')
+          overall=json.loads((root/'SEMISYNTHETIC_HIDDEN_CONFOUNDING_BUILD_SUMMARY.json').read_text())
+          assert overall['experiment_id']=='V3-SS-HC-001'
+          assert overall['levels']=={'moderate':{'lambda':0.5,'world_count':16},'strong':{'lambda':1.0,'world_count':16}}
+          for level in ['moderate','strong']:
+              pub=root/level/'public'; prv=root/level/'private'
+              assert len([p for p in pub.iterdir() if p.is_dir()])==16
+              assert len([p for p in prv.iterdir() if p.is_dir()])==16
+              for w in sorted(p for p in pub.iterdir() if p.is_dir()):
+                  assert (w/'train.csv').is_file() and (w/'test.csv').is_file() and (w/'schema.json').is_file()
+                  assert not (w/'world.json').exists() and not (w/'oracle_effects.json').exists() and not (w/'true_edges.json').exists()
+                  cols=pd.read_csv(w/'train.csv',nrows=1).columns
+                  assert 'U' not in cols and 'latent_U' not in cols
+                  assert pd.read_csv(w/'train.csv').trajectory_id.nunique()==1100
+                  assert pd.read_csv(w/'test.csv').trajectory_id.nunique()==400
+              for w in sorted(p for p in prv.iterdir() if p.is_dir()):
+                  assert (w/'world.json').is_file() and (w/'oracle_effects.json').is_file() and (w/'true_edges.json').is_file()
+                  world=json.loads((w/'world.json').read_text())
+                  assert world['hidden_confounder_present']
+                  assert world['hidden_confounder']['lambda'] in [0.5,1.0]
+                  oracle=json.loads((w/'oracle_effects.json').read_text())
+                  assert all(v['anchor_units']==1500 and v['mc_reps_per_anchor']==100 for v in oracle.values())
+          print('HC_GENERATION_FIREWALL=PASS')
+          PY
+
+      - name: Package physically separated level artifacts
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hc-pack
+          for level in moderate strong; do
+            mkdir -p /tmp/hc-pack/${level}/public/public /tmp/hc-pack/${level}/private/private
+            cp -R /tmp/hc/${level}/public/. /tmp/hc-pack/${level}/public/public/
+            cp -R /tmp/hc/${level}/private/. /tmp/hc-pack/${level}/private/private/
+            cp /tmp/hc/${level}/PUBLIC_MANIFEST.json /tmp/hc-pack/${level}/public/
+            cp /tmp/hc/${level}/PRIVATE_MANIFEST.json /tmp/hc-pack/${level}/private/
+            cp /tmp/hc/${level}/SEMISYNTHETIC_HC_${level^^}_BUILD_SUMMARY.json /tmp/hc-pack/${level}/private/
+          done
+
+      - name: Upload moderate public artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-public-moderate
+          path: /tmp/hc-pack/moderate/public/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload moderate private artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-private-moderate
+          path: /tmp/hc-pack/moderate/private/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload strong public artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-public-strong
+          path: /tmp/hc-pack/strong/public/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Upload strong private artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-private-strong
+          path: /tmp/hc-pack/strong/private/
+          retention-days: 90
+          if-no-files-found: error
+
+  estimate-hidden-confounding:
+    needs: generate-hidden-confounding
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        level: [moderate, strong]
+        world:
+          - confirm_helpdesk_identity_1
+          - confirm_helpdesk_identity_2
+          - confirm_helpdesk_identity_3
+          - confirm_helpdesk_identity_4
+          - confirm_bec_payment_1
+          - confirm_bec_payment_2
+          - confirm_bec_payment_3
+          - confirm_bec_payment_4
+          - confirm_exfiltration_1
+          - confirm_exfiltration_2
+          - confirm_exfiltration_3
+          - confirm_exfiltration_4
+          - confirm_itot_change_1
+          - confirm_itot_change_2
+          - confirm_itot_change_3
+          - confirm_itot_change_4
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+
+      - name: Download public artifact only for severity level
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-public-${{ matrix.level }}
+          path: /tmp/hc-public
+
+      - name: Enforce estimator physical privacy boundary
+        run: |
+          set -euo pipefail
+          test -d /tmp/hc-public/public
+          test ! -e /tmp/hc-public/private
+          ! find /tmp/hc-public -type f \( -name 'world.json' -o -name 'oracle_effects.json' -o -name 'true_edges.json' \) | grep -q .
+          python - <<'PY'
+          import pandas as pd,os
+          from pathlib import Path
+          w=os.environ['WORLD']
+          root=Path('/tmp/hc-public/public')/w
+          assert root.is_dir()
+          for name in ['train.csv','test.csv']:
+              cols=pd.read_csv(root/name,nrows=1).columns
+              assert 'U' not in cols and 'latent_U' not in cols
+          print('HC_ESTIMATOR_PRIVATE_INPUT_ABSENT=PASS')
+          PY
+        env:
+          WORLD: ${{ matrix.world }}
+
+      - name: Estimate and freeze severity-world output
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hc-est
+          mkdir -p /tmp/hc-est/${{ matrix.level }}
+          python experiments/v3/04_hidden_confounding/run_semisynthetic_hidden_confounding_estimators.py \
+            --public-root /tmp/hc-public/public \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --level ${{ matrix.level }} \
+            --world ${{ matrix.world }} \
+            --outdir /tmp/hc-est/${{ matrix.level }}
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          level=os.environ['LEVEL']; world=os.environ['WORLD']
+          root=Path('/tmp/hc-est')/level/world
+          md=json.loads((root/'run_metadata.json').read_text())
+          fr=json.loads((root/'freeze_manifest.json').read_text())
+          assert md['experiment_id']=='V3-SS-HC-001'
+          assert md['hidden_confounding_level']==level
+          assert not md['hidden_confounder_observed_by_estimator']
+          assert not md['estimator_private_SCM_access']
+          assert not md['hyperparameter_retuning_for_hidden_confounding']
+          assert md['standardization_anchor_units']==1500
+          assert fr['experiment_id']=='V3-SS-HC-001'
+          assert fr['frozen_before_private_scoring']
+          assert fr['standardization_anchor_units']==1500
+          print('HC_WORLD_ESTIMATION_FREEZE=PASS',level,world)
+          PY
+        env:
+          LEVEL: ${{ matrix.level }}
+          WORLD: ${{ matrix.world }}
+
+      - name: Upload frozen severity-world estimate
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-estimate-${{ matrix.level }}-${{ matrix.world }}
+          path: /tmp/hc-est/
+          retention-days: 90
+          if-no-files-found: error
+
+  score-hidden-confounding:
+    needs:
+      - generate-hidden-confounding
+      - estimate-hidden-confounding
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen scoring dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy==2.4.6 pandas==3.0.5 scipy==1.17.0
+
+      - name: Download all already frozen estimator artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-ss-hc-estimate-*
+          path: /tmp/hc-estimations
+          merge-multiple: true
+
+      - name: Verify all 32 freezes before private scoring download
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'experiments/v3/04_hidden_confounding')
+          import score_semisynthetic_hidden_confounding as s
+          root=Path('/tmp/hc-estimations')
+          count=0
+          for level in s.LEVELS:
+              for world in s.WORLDS:
+                  s.verify_estimation_world(root,level,world)
+                  count += 1
+          assert count==32
+          print('ALL_32_HC_ESTIMATIONS_FROZEN=PASS')
+          PY
+          test ! -e /tmp/hc-private
+          test ! -e /tmp/rq1-results
+
+      - name: Download private moderate scoring artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-private-moderate
+          path: /tmp/hc-private/moderate
+
+      - name: Download private strong scoring artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-hc-private-strong
+          path: /tmp/hc-private/strong
+
+      - name: Download immutable audited RQ1 scored baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rq1-results
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489911175/zip" -o /tmp/rq1-results.zip
+          echo 'dad2d38262c01f5f499c58b1b44229a8908fc29cb7cf6d41fefb51461d3f6a24  /tmp/rq1-results.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-results.zip -d /tmp/rq1-results
+          test -f /tmp/rq1-results/world_metrics.csv
+
+      - name: Score hidden-confounding sensitivity after freeze verification
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hc-scored
+          python experiments/v3/04_hidden_confounding/score_semisynthetic_hidden_confounding.py \
+            --estimation-root /tmp/hc-estimations \
+            --private-root /tmp/hc-private \
+            --rq1-results /tmp/rq1-results \
+            --outdir /tmp/hc-scored
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads((Path('/tmp/hc-scored')/'SEMISYNTHETIC_HIDDEN_CONFOUNDING_RESULTS.json').read_text())
+          assert r['experiment_id']=='V3-SS-HC-001'
+          assert r['status']=='PASS'
+          assert r['n_worlds']==16
+          assert r['levels']=={'moderate':0.5,'strong':1.0}
+          g=r['guardrails']
+          assert g['all_32_estimation_outputs_frozen_before_private_scoring']
+          assert not g['estimator_private_SCM_access']
+          assert not g['hidden_confounder_observed_by_estimator']
+          assert not g['hyperparameter_retuning']
+          assert not g['world_or_level_replacement']
+          assert g['target_anchor_units_per_world']==1500
+          assert g['mc_reps_per_anchor']==100
+          assert r['primary']['exact_signflip']['assignments']==65536
+          assert r['primary']['bootstrap']['reps']==10000
+          print('HC_SCORING_GUARDRAILS=PASS')
+          PY
+          (cd /tmp/hc-scored && sha256sum * > RESULT_SHA256.txt)
+          python -m pip freeze > /tmp/hc-scored/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/hc-scored/WORKFLOW_HEAD.txt
+
+      - name: Upload scored hidden-confounding result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-hidden-confounding-results
+          path: /tmp/hc-scored/
+          retention-days: 90
+          if-no-files-found: error
