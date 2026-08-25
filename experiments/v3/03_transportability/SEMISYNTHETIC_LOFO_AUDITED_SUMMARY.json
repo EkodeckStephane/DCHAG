@@ -1,0 +1,77 @@
+{
+  "experiment_id": "V3-SS-LOFO-001",
+  "analysis_class": "locked_secondary_post_RQ1",
+  "status": "PASS",
+  "workflow_run": 32627445235,
+  "workflow_head": "ce0d821519e62da7d17658d00f8858538f6a9ec3",
+  "trigger_head": "244f5d372b021f1e485e65194ad8c5c008e51507",
+  "final_artifact_id": 9490226674,
+  "final_artifact_sha256": "247a7b07118f8a71f76a5a58edc9eaa581db3a54ebb140d347b52ca940c5cc93",
+  "n_folds": 4,
+  "n_target_worlds": 16,
+  "models": {
+    "DCHAG_LOFO": {
+      "effect_mae": 0.03291822916666665,
+      "signed_bias": 0.002507812499999956,
+      "kendall": 0.7083333333333335,
+      "spearman": 0.8125,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.133924515625,
+      "bss_source_prevalence_reference": -0.001116132689035411,
+      "edge_precision": 0.6354166666666666,
+      "edge_recall": 0.9919354838709677,
+      "edge_f1": 0.7746109812142223
+    },
+    "Dense_LOFO": {
+      "effect_mae": 0.031563333333333325,
+      "signed_bias": -0.004004375000000049,
+      "kendall": 0.7708333333333335,
+      "spearman": 0.85,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.133798484375,
+      "bss_source_prevalence_reference": -0.0007514160339381418
+    }
+  },
+  "paired_dchag_minus_dense_effect_mae": {
+    "mean_difference": 0.0013548958333333297,
+    "family_mean_differences": {
+      "bec_payment": -0.001890833333333329,
+      "exfiltration": 0.0043462499999999855,
+      "helpdesk_identity": 0.006669999999999999,
+      "itot_change": -0.003705833333333337
+    },
+    "hierarchical_bootstrap_reps": 10000,
+    "hierarchical_bootstrap_seed": 20260823,
+    "hierarchical_bootstrap_ci95": [-0.0031651953125000007, 0.005769031250000009],
+    "family_signflip_assignments": 16,
+    "family_signflip_two_sided_p_descriptive": 0.625
+  },
+  "mean_transfer_penalty": {
+    "DCHAG_LOFO": 0.021606979166666707,
+    "Dense_LOFO": 0.019756562500000033,
+    "DCHAG_minus_Dense": 0.0018504166666666734
+  },
+  "guardrails": {
+    "four_folds_retained": true,
+    "sixteen_target_worlds_retained": true,
+    "target_endogenous_or_outcome_data_used_for_fit": false,
+    "target_family_used_for_hyperparameter_selection": false,
+    "estimator_private_SCM_access": false,
+    "estimation_outputs_frozen_before_private_scoring": true,
+    "target_standardization_anchor_units_per_world": 1500,
+    "mc_reps_per_anchor": 100,
+    "confirmatory_world_replacement": false
+  },
+  "interpretation": "Cross-family transfer degrades causal-effect fidelity for both DCHAG and dense sequential g-formula relative to within-family RQ1. DCHAG does not outperform dense-g under LOFO: the mean MAE difference is positive and the hierarchical bootstrap interval includes zero. Both methods retain the oracle top control in all 16 target worlds. This is locked secondary semi-synthetic transport evidence only; no real-organization causal transport claim is supported.",
+  "independent_audit": {
+    "artifact_sha256_reproduced": true,
+    "result_manifest_hashes_verified": true,
+    "model_aggregates_recomputed": true,
+    "family_differences_recomputed": true,
+    "hierarchical_bootstrap_recomputed": true,
+    "family_signflip_recomputed": true,
+    "transfer_penalties_recomputed": true
+  }
+}
