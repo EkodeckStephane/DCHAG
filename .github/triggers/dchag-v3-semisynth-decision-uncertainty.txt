@@ -1,0 +1,6 @@
+V3-SS-DEC-001
+Protocol: experiments/v3/05_decision_uncertainty/SEMISYNTHETIC_DECISION_UNCERTAINTY_PROTOCOL.md
+Parent evidence: audited V3-SS-CONF-001.
+Frozen DCHAG estimator: V3-SS-SEL-001-C1, max_parents=8.
+Exactly 16 worlds, 40 cluster-bootstrap fits/world/model, 25 paired MC replicates/anchor/regime.
+No tuning, bootstrap replacement, world replacement, or estimator access to private oracle material before freeze.
