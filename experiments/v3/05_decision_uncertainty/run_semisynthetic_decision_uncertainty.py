@@ -46,13 +46,18 @@ def stable_seed(text: str) -> int:
     return int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:16], 16) % (2**32)
 
 
-def split_anchors(train: pd.DataFrame, test: pd.DataFrame, horizon: int) -> np.ndarray:
-    a_train = sel.anchor_tensor_one_split(train, horizon)
-    a_test = sel.anchor_tensor_one_split(test, horizon)
-    if len(a_train) != 1100 or len(a_test) != 400:
-        raise RuntimeError("split-qualified anchor count mismatch")
-    anchors = np.concatenate([a_train, a_test], axis=0)
-    if len(anchors) != 1500:
+def load_target_anchors(path: Path, horizon: int) -> np.ndarray:
+    if not path.is_file():
+        raise RuntimeError(f"target anchor tensor missing: {path}")
+    with np.load(path, allow_pickle=False) as z:
+        train_anchors = np.asarray(z["train_anchors"], dtype=np.int8)
+        test_anchors = np.asarray(z["test_anchors"], dtype=np.int8)
+    if train_anchors.shape != (1100, horizon, len(ANCHORS)):
+        raise RuntimeError("training anchor tensor shape mismatch")
+    if test_anchors.shape != (400, horizon, len(ANCHORS)):
+        raise RuntimeError("test anchor tensor shape mismatch")
+    anchors = np.concatenate([train_anchors, test_anchors], axis=0)
+    if anchors.shape != (1500, horizon, len(ANCHORS)):
         raise RuntimeError("decision standardization requires exactly 1,500 anchors")
     return anchors
 
@@ -132,17 +137,16 @@ def run_world(public_root: Path, frozen_estimator: Path, world: str, outroot: Pa
     pub = public_root / world
     if not pub.is_dir() or not world.startswith("confirm_"):
         raise RuntimeError(f"invalid public world: {world}")
-    forbidden = {"world.json", "oracle_effects.json", "true_edges.json"}
+    forbidden = {"world.json", "oracle_effects.json", "true_edges.json", "test.csv"}
     if any(p.name in forbidden for p in pub.rglob("*") if p.is_file()):
-        raise RuntimeError("private scoring material leaked into estimator input")
+        raise RuntimeError("private or target-outcome material leaked into estimator input")
 
     schema = json.loads((pub / "schema.json").read_text())
     train = pd.read_csv(pub / "train.csv")
-    test = pd.read_csv(pub / "test.csv")
     horizon = int(schema["horizon"])
-    if train.trajectory_id.nunique() != 1100 or test.trajectory_id.nunique() != 400:
-        raise RuntimeError("public train/test count mismatch")
-    anchors = split_anchors(train, test, horizon)
+    if train.trajectory_id.nunique() != 1100:
+        raise RuntimeError("public training count mismatch")
+    anchors = load_target_anchors(pub / "target_anchors.npz", horizon)
 
     full_dchag, full_dense, full_dchag_seconds, full_dense_seconds = fit_models(train, schema)
     full_rows = []
@@ -205,7 +209,7 @@ def run_world(public_root: Path, frozen_estimator: Path, world: str, outroot: Pa
         "world": world,
         "status": "decision_uncertainty_outputs_frozen_before_private_scoring",
         "files": {name: sha256_file(out / name) for name in files},
-        "public_inputs": {name: sha256_file(pub / name) for name in ["schema.json", "train.csv", "test.csv"]},
+        "public_inputs": {name: sha256_file(pub / name) for name in ["schema.json", "train.csv", "target_anchors.npz"]},
         "bootstrap_reps": BOOTSTRAP_REPS,
         "standardization_anchor_units": 1500,
         "mc_reps_per_anchor": MC_REPS,
