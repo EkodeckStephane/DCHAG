@@ -1,0 +1,135 @@
+{
+  "experiment_id": "V3-SS-HC-001",
+  "status": "PASS",
+  "workflow_run": 32859347437,
+  "workflow_head": "679afaae412071c0e00f4bc05c8f2d08dc99ea72",
+  "final_artifact_id": 9567800570,
+  "final_artifact_sha256": "8ea7bbe7039f57b2e476b26b062d500925f6f52129f78c8cdabcf83c4a3cc2ea",
+  "levels": {
+    "moderate": 0.5,
+    "strong": 1.0
+  },
+  "n_worlds_per_level": 16,
+  "n_frozen_estimation_outputs": 32,
+  "primary_endpoint": {
+    "name": "strong-confounding DCHAG effect-MAE penalty relative to audited RQ1",
+    "mean_penalty": 0.006604791666666731,
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260834,
+    "bootstrap_ci95": [0.004158057291666744, 0.009049289062500084],
+    "exact_signflip_assignments": 65536,
+    "exact_signflip_two_sided_p": 0.000244140625
+  },
+  "moderate": {
+    "DCHAG_Learned": {
+      "effect_mae": 0.010555104166666673,
+      "confounding_penalty_vs_RQ1": -0.0007561458333332768,
+      "penalty_bootstrap_ci95": [-0.002912817708333279, 0.0014210546875000356],
+      "penalty_exact_signflip_p": 0.5115966796875,
+      "signed_bias": -0.0012973958333333674,
+      "kendall": 0.8333333333333335,
+      "spearman": 0.8999999999999999,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.142356953125,
+      "bss": 0.009361228540680479,
+      "edge_precision": 0.697267,
+      "edge_recall": 0.974551,
+      "edge_f1": 0.812447
+    },
+    "Dense_Sequential_GFormula": {
+      "effect_mae": 0.01573802083333336,
+      "confounding_penalty_vs_RQ1": 0.003931250000000065,
+      "penalty_bootstrap_ci95": [0.00069897135416673, 0.007149143229166727],
+      "penalty_exact_signflip_p": 0.03826904296875,
+      "signed_bias": -0.014014895833333369,
+      "kendall": 0.8541666666666667,
+      "spearman": 0.9125,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.141788,
+      "bss": 0.011703152763258166
+    }
+  },
+  "strong": {
+    "DCHAG_Learned": {
+      "effect_mae": 0.01791604166666668,
+      "confounding_penalty_vs_RQ1": 0.006604791666666731,
+      "signed_bias": -0.010861666666666705,
+      "kendall": 0.7916666666666667,
+      "spearman": 0.8624999999999999,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.15517325,
+      "bss": 0.011201780034902513,
+      "edge_precision": 0.677457,
+      "edge_recall": 0.967444,
+      "edge_f1": 0.796714
+    },
+    "Dense_Sequential_GFormula": {
+      "effect_mae": 0.03047145833333337,
+      "confounding_penalty_vs_RQ1": 0.018664687500000075,
+      "penalty_bootstrap_ci95": [0.01562977604166675, 0.021581986979166745],
+      "penalty_exact_signflip_p": 0.000030517578125,
+      "signed_bias": -0.030022916666666705,
+      "kendall": 0.8541666666666667,
+      "spearman": 0.9125,
+      "top_control_accuracy": 1.0,
+      "normalized_regret": 0.0,
+      "brier": 0.15534346875,
+      "bss": 0.00991191139089554
+    },
+    "DCHAG_minus_Dense_effect_mae": {
+      "mean_difference": -0.01255541666666669,
+      "bootstrap_reps": 10000,
+      "bootstrap_seed": 20260844,
+      "bootstrap_ci95": [-0.01514236458333336, -0.009799458333333367],
+      "exact_signflip_assignments": 65536,
+      "exact_signflip_two_sided_p": 0.000030517578125,
+      "status": "secondary comparator, specific to the frozen latent-confounding mechanism"
+    }
+  },
+  "strong_family_mean_penalties": {
+    "bec_payment": {
+      "DCHAG_Learned": 0.006354,
+      "Dense_Sequential_GFormula": 0.019502
+    },
+    "exfiltration": {
+      "DCHAG_Learned": 0.005917,
+      "Dense_Sequential_GFormula": 0.015818
+    },
+    "helpdesk_identity": {
+      "DCHAG_Learned": 0.004355,
+      "Dense_Sequential_GFormula": 0.015350
+    },
+    "itot_change": {
+      "DCHAG_Learned": 0.009794,
+      "Dense_Sequential_GFormula": 0.023988
+    }
+  },
+  "monotonicity": {
+    "DCHAG_Learned": {"worlds": 8, "n_worlds": 16, "fraction": 0.5},
+    "Dense_Sequential_GFormula": {"worlds": 11, "n_worlds": 16, "fraction": 0.6875}
+  },
+  "guardrails": {
+    "all_32_estimation_outputs_frozen_before_private_scoring": true,
+    "estimator_private_SCM_access": false,
+    "hidden_confounder_observed_by_estimator": false,
+    "hyperparameter_retuning": false,
+    "world_or_level_replacement": false,
+    "standardization_anchor_units_per_world": 1500,
+    "mc_reps_per_anchor": 100
+  },
+  "interpretation": "The frozen strong latent-confounding mechanism causes a statistically clear increase in DCHAG causal-effect MAE relative to audited RQ1, establishing a sensitivity/identification limitation rather than robustness. Dense sequential g-formula degrades more under the same mechanism; the strong-level DCHAG effect MAE is lower than dense-g in this specific semi-synthetic setting. Moderate confounding does not measurably degrade DCHAG while it measurably degrades dense-g. Top-control selection remains correct in all worlds for both estimators. These findings do not establish identification under arbitrary hidden confounding, general robustness, or any real-LANL causal effect.",
+  "independent_audit": {
+    "artifact_sha256_reproduced": true,
+    "result_manifest_hashes_verified": true,
+    "model_aggregates_recomputed": true,
+    "primary_penalty_recomputed": true,
+    "bootstrap_recomputed": true,
+    "exact_signflip_recomputed": true,
+    "strong_dchag_minus_dense_recomputed": true,
+    "monotonicity_recomputed": true,
+    "edge_summaries_recomputed": true
+  }
+}
