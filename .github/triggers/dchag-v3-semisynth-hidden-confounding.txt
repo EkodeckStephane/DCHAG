@@ -1,0 +1,5 @@
+V3-SS-HC-001
+Protocol: experiments/v3/04_hidden_confounding/SEMISYNTHETIC_HIDDEN_CONFOUNDING_PROTOCOL.md
+Prospective hidden-confounding sensitivity after audited RQ1/RQ2.
+Frozen levels: lambda=0.50 and lambda=1.00; RQ1 lambda=0 is immutable baseline.
+No retuning, no world or level replacement; all 32 estimator outputs must freeze before private scoring.
