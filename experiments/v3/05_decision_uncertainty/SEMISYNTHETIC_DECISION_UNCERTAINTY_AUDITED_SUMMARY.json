@@ -1,0 +1,95 @@
+{
+  "administrative_duplicate": {
+    "later_pr": 16,
+    "later_workflow_run": 32880101209,
+    "reason": "A prior protocol-complete successful execution existed before the later trigger. The later run cannot replace or select among the authoritative run-1 outputs.",
+    "scientific_use": "EXCLUDED",
+    "status_at_audit": "in_progress"
+  },
+  "claim_boundary": "Finite-sample decision stability in the frozen semi-synthetic benchmark only; not posterior uncertainty, real-world uncertainty calibration, real control effectiveness, arbitrary distribution-shift robustness, or real-LANL causal identification.",
+  "decision_quality": {
+    "DCHAG_mean_kendall_vs_oracle": 0.8029391498294353,
+    "DCHAG_mean_normalized_oracle_regret": 0.0008490445460508547,
+    "DCHAG_mean_spearman_vs_oracle": 0.8619257117688026,
+    "DCHAG_mean_top_runnerup_margin": 0.10165691666666668,
+    "DCHAG_oracle_top_accuracy": 0.9984375,
+    "Dense_mean_kendall_vs_oracle": 0.7901041666666668,
+    "Dense_mean_normalized_oracle_regret": 0.0008490445460508547,
+    "Dense_mean_spearman_vs_oracle": 0.85,
+    "Dense_mean_top_runnerup_margin": 0.09703316666666668,
+    "Dense_oracle_top_accuracy": 0.9984375
+  },
+  "dense_secondary": {
+    "mean_world_top_switch_rate": 0.0015625,
+    "worlds_with_any_switch": 1
+  },
+  "experiment_id": "V3-SS-DEC-001",
+  "frozen_counts": {
+    "cluster_bootstrap_reps_per_world": 40,
+    "independent_worlds": 16,
+    "paired_mc_reps_per_anchor_regime": 25,
+    "sampled_train_clusters_per_rep": 1100,
+    "standardization_anchors_per_world": 1500
+  },
+  "independent_audit": {
+    "aggregate_model_metrics_recomputed_exactly": true,
+    "all_result_member_hashes_match_RESULT_SHA256": true,
+    "exact_signflip_recomputed_exactly": true,
+    "paired_bootstrap_recomputed_exactly": true,
+    "primary_bootstrap_recomputed_exactly": true,
+    "primary_mean_recomputed": true,
+    "row_counts": {
+      "bootstrap_decisions": 1280,
+      "pairwise_rank_reversals": 192,
+      "rq1_reference_check": 32,
+      "world_decision_stability": 32
+    },
+    "zip_sha256_matches_github": true
+  },
+  "only_top_switch": {
+    "DCHAG_normalized_oracle_regret": 0.543388509472547,
+    "Dense_normalized_oracle_regret": 0.543388509472547,
+    "bootstrap_replicate": 13,
+    "bootstrap_top": "C1",
+    "full_sample_top": "C4",
+    "world": "confirm_helpdesk_identity_1"
+  },
+  "paired_DCHAG_minus_dense": {
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260846,
+    "ci95": [0.0, 0.0],
+    "exact_signflip_assignments": 65536,
+    "exact_two_sided_p": 1.0,
+    "mean_difference": 0.0
+  },
+  "primary": {
+    "DCHAG_mean_world_top_switch_rate": 0.0015625,
+    "bootstrap_mean": 0.0015662500000000002,
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260845,
+    "ci95": [0.0, 0.004687500000000001],
+    "worlds_with_any_switch": 1
+  },
+  "result_member_sha256": {
+    "SEMISYNTHETIC_DECISION_UNCERTAINTY_RESULTS.json": "77ce02a4f6e336b2684e0bb15ffffde78063e0224be207ad0a1ba6ee903246e1",
+    "bootstrap_decisions.csv": "5562d7e30881c1486f27feb5e4ac36dd31b8814fc76f4117292b14bcdee71060",
+    "model_decision_summary.csv": "d55d2f9fb7912d03a32afc23177ec042f72572322315cf60288e9e948b63a926",
+    "pairwise_rank_reversals.csv": "df9d8ad4d2068dfa99675b72c63ae0c484c4d01db6799ba9b537b32aba8b16a0",
+    "rq1_reference_check.csv": "2387288c0fd92e06dd32ae1b042eea0a783016c9f665c572d14737b38ef3a1ac",
+    "world_decision_stability.csv": "721215ae1a3f46f4777182576d0432340d466b9bcd394b1640ee5ba499a7d8c3"
+  },
+  "rq1_reference": {
+    "DCHAG_full_top_discrepancies": 0,
+    "Dense_full_top_discrepancies": 0
+  },
+  "scientific_execution": {
+    "authoritative_pr": 15,
+    "authoritative_workflow_run": 32869550752,
+    "base_frozen_workflow_commit": "b264d8ea001af3748e289a861d8dfca00c6ff0ce",
+    "final_artifact_id": 9572481389,
+    "final_artifact_sha256": "a11c24ec369f4d324b686fb3a8b6f28fbadd9d278e96e8d1615fc56c823ceef1",
+    "pr_head_sha": "eb46279b09b7a988e766db0f85b7f48aa8ff0c33",
+    "pull_request_merge_ref_sha": "72bcf7647ee6357f1d401a48a4276d8e23d6d2c0"
+  },
+  "status": "PASS"
+}
