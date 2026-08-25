@@ -1,0 +1,5 @@
+V3-SS-DEC-001
+Protocol: experiments/v3/05_decision_uncertainty/SEMISYNTHETIC_DECISION_UNCERTAINTY_PROTOCOL.md
+Frozen finite-sample perturbation: 16 worlds, 40 trajectory-cluster bootstraps/world, 1,100 sampled clusters/replicate, 1,500 target anchors, 25 paired MC reps/anchor/regime.
+No retuning, no world/bootstrap replacement, no target test outcomes or private SCM/oracle in estimator jobs.
+All 16 world outputs must freeze before private scoring.
