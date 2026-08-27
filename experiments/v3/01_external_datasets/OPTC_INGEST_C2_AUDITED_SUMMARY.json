@@ -1,0 +1,62 @@
+{
+  "experiment_id": "V3-OPTC-INGEST-001-C2",
+  "status": "PASS",
+  "pass_definition": "Protocol-complete corrected observational ingestion; PASS does not imply causal validity.",
+  "parent_protocol_id": "V3-OPTC-INGEST-001",
+  "parent_failed_execution": "V3-OPTC-INGEST-001-C1",
+  "workflow_run": 33063522641,
+  "workflow_job": 98487893090,
+  "execution_pr": 19,
+  "execution_base_sha": "5617e5de06203e04552386c40059e751a59307c5",
+  "execution_head_sha": "7174ebdc399aa7737368ab8d5f38cbc93220e01f",
+  "checked_out_pr_merge_ref_sha": "91c0b6a86bff559091977fe0759572ec7f69a05f",
+  "result_artifact_id": 9642733704,
+  "result_artifact_zip_sha256": "7eb888aa288d0a4fa7c3e2d35629cb6a6d647091a226e2dc6db5e1b4cd7def4f",
+  "result_json_sha256": "199d39d4d429b3c4af7e17dd9083ee2c9097ae7977128fb6dc658b0076e5c56e",
+  "source": {
+    "repository": "brbickel/ecar-challenge",
+    "commit": "45b7c7c85ddce4b44f84f68af7822c5466a7077d",
+    "path": "data.json",
+    "bytes": 5649857,
+    "git_blob_sha1": "25279a41030981ead9bf6134432aa6112429eb82"
+  },
+  "records": 10000,
+  "mapping_failures": 0,
+  "record_coverage": {
+    "principal_records": 9890,
+    "principal_fraction": 0.989,
+    "hostname_records": 10000,
+    "hostname_fraction": 1.0,
+    "missing_actor_id": 0,
+    "missing_object_id": 0
+  },
+  "typed_observations": {
+    "H": 9890,
+    "P": 447,
+    "T": 9553,
+    "total_typed_observations": 19890
+  },
+  "record_level_type_coverage": {
+    "H_fraction": 0.989,
+    "P_fraction": 0.0447,
+    "T_fraction": 0.9553
+  },
+  "temporal": {
+    "valid_timestamp_count": 10000,
+    "min_timestamp_ms": 1569268031308,
+    "max_timestamp_ms": 1569268158538,
+    "span_ms": 127230,
+    "span_seconds": 127.23,
+    "source_order_nondecreasing": false
+  },
+  "guardrails": {
+    "source_identity_verified": true,
+    "red_team_ground_truth_used": false,
+    "control_C_inferred": false,
+    "all_mapping_invariants_verified": true,
+    "all_artifact_internal_hashes_verified": true,
+    "aggregate_only_artifact": true,
+    "causal_effect_estimated": false
+  },
+  "interpretation": "The corrected frozen adapter maps the complete immutable 10,000-record OpTC pilot sample with zero failures and exact deterministic H/P/T invariants. The source provides high user-associated and technical observational coverage and a smaller process-transition channel. The original source record order is not chronologically nondecreasing, so downstream temporal processing must sort or otherwise explicitly handle event-time order while preserving provenance. This is semantic portability and observational ingestibility evidence only, not intervention-effect or causal validation."
+}
