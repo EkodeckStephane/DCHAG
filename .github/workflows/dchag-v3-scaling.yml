@@ -1,0 +1,130 @@
+name: DCHAG v3 computational scaling
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-scaling.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scaling-benchmark:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 \
+            psutil==7.0.0 pytest==9.1.1
+
+      - name: Verify frozen protocol and estimator
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/06_scaling/SCALING_PROTOCOL.md
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'))
+          assert x['status']=='ACTIVE'
+          assert x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8
+          assert x['screening_C']==0.05
+          assert x['local_model_C']==0.7
+          assert not x['confirmatory_tuning_allowed']
+          print('SCALING_FROZEN_ESTIMATOR=PASS')
+          PY
+
+      - name: Run scaling regression and guardrail tests
+        run: |
+          set -euo pipefail
+          pytest -q experiments/v3/06_scaling/test_scaling_benchmark.py
+          python -m py_compile \
+            experiments/v3/06_scaling/run_scaling_benchmark.py \
+            experiments/v3/06_scaling/score_scaling_benchmark.py
+
+      - name: Capture runner environment before benchmark
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-scaling
+          mkdir -p /tmp/dchag-scaling/raw /tmp/dchag-scaling/scored
+          uname -a > /tmp/dchag-scaling/RUNNER_UNAME.txt
+          lscpu > /tmp/dchag-scaling/RUNNER_LSCPU.txt
+          python -V > /tmp/dchag-scaling/PYTHON_VERSION.txt 2>&1
+          python -m pip freeze > /tmp/dchag-scaling/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/dchag-scaling/WORKFLOW_HEAD.txt
+
+      - name: Execute all frozen scaling configurations
+        run: |
+          set -euo pipefail
+          python experiments/v3/06_scaling/run_scaling_benchmark.py \
+            --suite \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --outdir /tmp/dchag-scaling/raw
+          python - <<'PY'
+          import json,pandas as pd
+          p='/tmp/dchag-scaling/raw/SCALING_RAW_RESULTS.csv'
+          df=pd.read_csv(p)
+          assert len(df)==36
+          assert set(df['model'])=={'dchag','dense'}
+          assert set(df['replicate'])=={1,2,3}
+          assert not df['private_oracle_access'].astype(bool).any()
+          assert not df['hyperparameter_tuning'].astype(bool).any()
+          assert not df['configuration_replacement'].astype(bool).any()
+          d=df[df.model=='dchag']
+          assert (d['max_selected_parents']<=8).all()
+          m=json.load(open('/tmp/dchag-scaling/raw/SCALING_RAW_METADATA.json'))
+          assert m['expected_rows']==36
+          assert not m['private_oracle_access']
+          assert not m['hyperparameter_tuning']
+          assert not m['configuration_replacement']
+          print('SCALING_RAW_GUARDRAILS=PASS')
+          PY
+
+      - name: Score frozen scaling benchmark
+        run: |
+          set -euo pipefail
+          python experiments/v3/06_scaling/score_scaling_benchmark.py \
+            --raw /tmp/dchag-scaling/raw/SCALING_RAW_RESULTS.csv \
+            --outdir /tmp/dchag-scaling/scored
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/dchag-scaling/scored/SCALING_RESULTS.json'))
+          assert r['experiment_id']=='V3-SCALE-001'
+          assert r['status']=='PASS'
+          assert r['n_raw_rows']==36
+          assert r['n_unique_configurations']==6
+          g=r['guardrails']
+          assert not g['private_oracle_access']
+          assert not g['hyperparameter_tuning']
+          assert not g['configuration_or_replicate_replacement']
+          assert g['dchag_parent_cap_respected']
+          assert g['all_frozen_configurations_present']
+          print('SCALING_SCORING_GUARDRAILS=PASS')
+          PY
+
+      - name: Freeze artifact hashes
+        run: |
+          set -euo pipefail
+          cp experiments/v3/06_scaling/SCALING_PROTOCOL.md /tmp/dchag-scaling/
+          (cd /tmp/dchag-scaling && find . -type f ! -name 'SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Upload scaling result artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-scaling-results
+          path: /tmp/dchag-scaling/
+          retention-days: 90
+          if-no-files-found: error
