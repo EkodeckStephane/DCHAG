@@ -1,0 +1,5 @@
+V3-OPTC-INGEST-001-C2
+Use the same immutable 10,000-record OpTC sample and exact frozen H/P/T mapping.
+Apply only C1 source-order preservation and C2 shared timestamp normalization.
+Require zero mapping failures and exact deterministic H/P/T count invariants.
+No source substitution, red-team truth, C/control inference, or causal-effect claim permitted.
