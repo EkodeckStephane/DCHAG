@@ -15,7 +15,7 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 
-from optc_adapter import map_ecar_event
+from optc_adapter import map_ecar_event, parse_ecar_timestamp_ms
 
 SOURCE_URL = (
     "https://raw.githubusercontent.com/brbickel/ecar-challenge/"
@@ -108,10 +108,10 @@ def main() -> int:
             missing_actor += 1
         if event.get("objectID") in (None, ""):
             missing_object_id += 1
-        ts = event.get("timestamp_ms", event.get("timestamp"))
-        if ts is not None:
+        raw_ts = event.get("timestamp_ms", event.get("timestamp"))
+        if raw_ts is not None:
             try:
-                timestamps.append(int(ts))
+                timestamps.append(parse_ecar_timestamp_ms(raw_ts))
             except (TypeError, ValueError):
                 pass
         try:
@@ -124,9 +124,10 @@ def main() -> int:
             role_counts[obs.evidence_role] += 1
 
     result = {
-        "experiment_id": "V3-OPTC-INGEST-001-C1",
+        "experiment_id": "V3-OPTC-INGEST-001-C2",
         "parent_protocol_id": "V3-OPTC-INGEST-001",
-        "correction": "C1 source-order temporal endpoint",
+        "parent_failed_execution": "V3-OPTC-INGEST-001-C1",
+        "correction": "C2 shared ISO-8601/numeric timestamp normalization with C1 source-order preservation",
         "source": {
             "acquisition": acquisition,
             "immutable_url": SOURCE_URL,
