@@ -1,0 +1,128 @@
+name: DCHAG v3 reproducibility snapshot
+
+on:
+  push:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-repro-snapshot.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  freeze-snapshot:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact branch revision
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build deterministic tracked-file snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-snapshot /tmp/dchag-out
+          mkdir -p /tmp/dchag-snapshot/DCHAG_repo_public /tmp/dchag-out
+          python - <<'PY'
+          import hashlib, json, os, shutil, subprocess, zipfile
+          from pathlib import Path
+
+          repo = Path.cwd()
+          root = Path('/tmp/dchag-snapshot/DCHAG_repo_public')
+          out = Path('/tmp/dchag-out')
+          head = subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip()
+          tree = subprocess.check_output(['git','rev-parse','HEAD^{tree}'], text=True).strip()
+          branch = os.environ.get('GITHUB_REF_NAME','dchag-v3')
+          tracked = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          tracked = [p for p in tracked if p]
+
+          # Editorial/submission documents are deliberately excluded if ever tracked.
+          forbidden_exact = {
+              'DCHAG_manuscript.tex','DCHAG_manuscript.pdf',
+              'DCHAG_Cover_Letter.tex','DCHAG_Cover_Letter.pdf',
+          }
+          def excluded(path: str) -> bool:
+              low = path.lower()
+              return path in forbidden_exact or low.startswith('submission/') or low.startswith('editorial/')
+
+          copied = []
+          excluded_paths = []
+          for rel in sorted(tracked):
+              if excluded(rel):
+                  excluded_paths.append(rel)
+                  continue
+              src = repo / rel
+              if not src.is_file():
+                  continue
+              dst = root / rel
+              dst.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(src, dst)
+              copied.append(rel)
+
+          required = [
+              'experiments/v3/EXPERIMENT_LEDGER.md',
+              'experiments/v3/EXPERIMENT_LEDGER_CORRECTIONS_2026-08-27.md',
+              'experiments/v3/MANUSCRIPT_CLAIM_MATRIX.md',
+              'experiments/v3/SCIENTIFIC_CLOSURE_AUDIT.md',
+              'experiments/v3/01_external_datasets/OPTC_INGEST_C1_FAILURE.md',
+              'experiments/v3/01_external_datasets/OPTC_INGEST_C2_AUDIT.md',
+              'experiments/v3/01_external_datasets/OPTC_INGEST_C2_AUDITED_SUMMARY.json',
+          ]
+          missing = [p for p in required if not (root / p).is_file()]
+          if missing:
+              raise SystemExit(f'missing required snapshot files: {missing}')
+
+          manifest = {
+              'snapshot_id': 'DCHAG-V3-REPRO-FINAL-2026-08-27',
+              'repository': 'EkodeckStephane/DCHAG',
+              'branch': branch,
+              'source_head_sha': head,
+              'source_tree_sha': tree,
+              'tracked_files_included': len(copied),
+              'excluded_editorial_paths': excluded_paths,
+              'policy': 'Tracked scientific/reproducibility repository files only; manuscript, cover-letter and editorial submission files excluded if present. Scientific experiment audits and failure/correction history are included.',
+          }
+          (root/'SNAPSHOT_MANIFEST.json').write_text(json.dumps(manifest, indent=2, sort_keys=True)+'\n')
+
+          def sha256(path: Path) -> str:
+              h=hashlib.sha256()
+              with path.open('rb') as f:
+                  for block in iter(lambda:f.read(1<<20), b''):
+                      h.update(block)
+              return h.hexdigest()
+
+          files = sorted(p for p in root.rglob('*') if p.is_file())
+          lines = [f'{sha256(p)}  {p.relative_to(root).as_posix()}' for p in files]
+          (root/'SNAPSHOT_FILE_SHA256.txt').write_text('\n'.join(lines)+'\n')
+
+          archive = out/'DCHAG_Reproducibility_Snapshot_V3_FINAL.zip'
+          with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as zf:
+              for p in sorted(x for x in root.rglob('*') if x.is_file()):
+                  arc = ('DCHAG_repo_public/' + p.relative_to(root).as_posix())
+                  info = zipfile.ZipInfo(arc, date_time=(1980,1,1,0,0,0))
+                  info.compress_type = zipfile.ZIP_DEFLATED
+                  info.external_attr = 0o100644 << 16
+                  zf.writestr(info, p.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+          digest = sha256(archive)
+          (out/'DCHAG_Reproducibility_Snapshot_V3_FINAL.sha256').write_text(f'{digest}  {archive.name}\n')
+          (out/'SOURCE_HEAD.txt').write_text(head+'\n')
+          (out/'SOURCE_TREE.txt').write_text(tree+'\n')
+          print(json.dumps({'head':head,'tree':tree,'files':len(copied),'archive_sha256':digest}, sort_keys=True))
+          PY
+
+      - name: Verify frozen snapshot contents
+        run: |
+          set -euo pipefail
+          unzip -t /tmp/dchag-out/DCHAG_Reproducibility_Snapshot_V3_FINAL.zip >/dev/null
+          test -s /tmp/dchag-out/DCHAG_Reproducibility_Snapshot_V3_FINAL.sha256
+          echo SNAPSHOT_VERIFY=PASS
+
+      - name: Upload final reproducibility snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-reproducibility-snapshot-final
+          path: /tmp/dchag-out/
+          retention-days: 90
+          if-no-files-found: error
