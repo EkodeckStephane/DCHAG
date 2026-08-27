@@ -6,6 +6,8 @@ and never invents defensive-control interventions from observational telemetry.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
+import math
 from typing import Any, Mapping
 
 
@@ -37,6 +39,48 @@ def _int_or_none(value: Any) -> int | None:
     return None if value < 0 else value
 
 
+def parse_ecar_timestamp_ms(value: Any) -> int:
+    """Normalize supported eCAR timestamps to Unix epoch milliseconds.
+
+    Numeric values preserve the pre-C2 epoch-millisecond interpretation. ISO-8601
+    strings must carry an explicit UTC offset (or ``Z``) so temporal ordering is
+    unambiguous.
+    """
+    if value is None or isinstance(value, bool):
+        raise ValueError("eCAR timestamp is missing or invalid")
+
+    if isinstance(value, (int, float)):
+        numeric = float(value)
+        if not math.isfinite(numeric):
+            raise ValueError("eCAR numeric timestamp is non-finite")
+        return int(numeric)
+
+    text = str(value).strip()
+    if not text:
+        raise ValueError("eCAR timestamp is empty")
+
+    try:
+        numeric = float(text)
+    except ValueError:
+        numeric = None
+    if numeric is not None:
+        if not math.isfinite(numeric):
+            raise ValueError("eCAR numeric timestamp is non-finite")
+        return int(numeric)
+
+    iso = text[:-1] + "+00:00" if text.endswith(("Z", "z")) else text
+    try:
+        dt = datetime.fromisoformat(iso)
+    except ValueError as exc:
+        raise ValueError(f"invalid eCAR ISO-8601 timestamp: {text}") from exc
+    if dt.tzinfo is None or dt.utcoffset() is None:
+        raise ValueError("eCAR ISO-8601 timestamp lacks timezone offset")
+    utc = dt.astimezone(timezone.utc)
+    epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    delta = utc - epoch
+    return ((delta.days * 86400 + delta.seconds) * 1000) + (delta.microseconds // 1000)
+
+
 def map_ecar_event(event: Mapping[str, Any]) -> list[TypedObservation]:
     """Map one eCAR event to one or more conservative DCHAG observations.
 
@@ -45,10 +89,10 @@ def map_ecar_event(event: Mapping[str, Any]) -> list[TypedObservation]:
     T: technical host/network/file/registry/etc. event.
     C: never inferred here; external observational telemetry has no intervention oracle.
     """
-    ts = event.get("timestamp_ms", event.get("timestamp"))
-    if ts is None:
+    raw_ts = event.get("timestamp_ms", event.get("timestamp"))
+    if raw_ts is None:
         raise ValueError("eCAR event lacks timestamp/timestamp_ms")
-    ts = int(ts)
+    ts = parse_ecar_timestamp_ms(raw_ts)
 
     obj = str(event.get("object", "UNKNOWN")).upper()
     action = str(event.get("action", "UNKNOWN")).upper()
