@@ -1,0 +1,5 @@
+V3-SCALE-001
+Frozen protocol: experiments/v3/06_scaling/SCALING_PROTOCOL.md
+Frozen estimator: V3-SS-SEL-001-C1, max_parents=8.
+Run all six frozen configurations, three replicates, both estimators.
+No tuning, configuration replacement, or replicate replacement permitted.
