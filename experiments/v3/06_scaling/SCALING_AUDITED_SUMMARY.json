@@ -1,0 +1,74 @@
+{
+  "experiment_id": "V3-SCALE-001",
+  "status": "PASS",
+  "pass_definition": "Protocol-complete computational benchmark; PASS does not mean estimator superiority.",
+  "workflow_run": 33062315720,
+  "workflow_job": 98483835505,
+  "execution_pr": 17,
+  "execution_head_sha": "d028333ed420c5c45650e95330163e1c8e578ef5",
+  "execution_base_sha": "37251e5ca998fb0f53a2d5eb7daa218d1658e05a",
+  "checked_out_pr_merge_ref_sha": "95e16af0eceaecf93fd3fa044f4b926ae1a001d4",
+  "result_artifact_id": 9642303712,
+  "result_artifact_zip_sha256": "70d9646690f4f04d58cbd364c1f533ee849b971bdde394091e0c0633d1c93a6c",
+  "runner": {
+    "os": "ubuntu-24.04 GitHub-hosted runner",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "logical_cpus_visible": 4,
+    "python": "3.11.16"
+  },
+  "raw_rows": 36,
+  "unique_configurations": 6,
+  "replicates_per_model_configuration": 3,
+  "graph_axis": {
+    "endogenous_nodes": [12, 24, 36, 48],
+    "trajectories": 600,
+    "dchag_median_fit_seconds": [0.233647103, 0.665590038, 1.297234213, 1.966914875],
+    "dense_median_fit_seconds": [1.204943388, 3.025679719, 5.486546683, 8.498348477],
+    "dense_over_dchag_time_ratios": [5.157108188, 4.545860885, 4.229418734, 4.320648842],
+    "dchag_loglog_fit_time_slope": 1.5457361718474885,
+    "dense_loglog_fit_time_slope": 1.405314964300599,
+    "dchag_minus_dense_slope": 0.14042120754688936,
+    "largest_graph_incremental_peak_rss_mib": {
+      "dchag": 21.02734375,
+      "dense": 22.51171875,
+      "dense_over_dchag_ratio": 1.0705926063533346
+    }
+  },
+  "sample_axis": {
+    "endogenous_nodes": 24,
+    "trajectories": [300, 600, 1200],
+    "train_rows": [1440, 2880, 5760],
+    "dchag_median_fit_seconds": [0.459866991, 0.665590038, 1.051815605],
+    "dense_median_fit_seconds": [2.531714188, 3.025679719, 3.842091982],
+    "dense_over_dchag_time_ratios": [5.505318358, 4.545860885, 3.652818958],
+    "dchag_loglog_fit_time_slope": 0.5967966277929848,
+    "dense_loglog_fit_time_slope": 0.30088875707868024,
+    "dchag_minus_dense_slope": 0.2959078707143046,
+    "largest_sample_incremental_peak_rss_mib": {
+      "dchag": 19.5859375,
+      "dense": 14.15234375,
+      "dense_over_dchag_ratio": 0.7225767850019944
+    }
+  },
+  "dchag_structural_density_graph_axis": [
+    {"endogenous_nodes": 12, "selected_edges": 67.0, "admissible_feature_specs": 282.0, "selected_edge_density": 0.2375886524822695},
+    {"endogenous_nodes": 24, "selected_edges": 164.0, "admissible_feature_specs": 996.0, "selected_edge_density": 0.1646586345381526},
+    {"endogenous_nodes": 36, "selected_edges": 271.0, "admissible_feature_specs": 2142.0, "selected_edge_density": 0.1265172735760971},
+    {"endogenous_nodes": 48, "selected_edges": 372.0, "admissible_feature_specs": 3720.0, "selected_edge_density": 0.1}
+  ],
+  "guardrails": {
+    "all_frozen_configurations_present": true,
+    "all_three_replicates_present": true,
+    "dchag_parent_cap_respected": true,
+    "max_selected_parents": 8,
+    "mi_fallback_total": 0,
+    "private_oracle_access": false,
+    "hyperparameter_tuning": false,
+    "configuration_or_replicate_replacement": false,
+    "artifact_internal_sha256_manifest_verified": true,
+    "independent_medians_reproduced": true,
+    "independent_loglog_slopes_reproduced": true,
+    "independent_ratios_reproduced": true
+  },
+  "interpretation": "DCHAG is substantially faster in absolute fit time at every frozen benchmark point, but its observed log-log fit-time slope is steeper than dense-g on both frozen axes, so the absolute speed advantage narrows rather than demonstrating better scaling order. Memory does not show a consistent DCHAG advantage. DCHAG selected-edge density falls from 0.238 to 0.100 as graph size grows because of the frozen parent cap. These are controlled runner-specific engineering observations, not an asymptotic complexity proof or causal-validity result."
+}
