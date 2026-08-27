@@ -1,0 +1,4 @@
+V3-OPTC-INGEST-001-C1
+Use immutable brbickel/ecar-challenge data.json at commit 45b7c7c85ddce4b44f84f68af7822c5466a7077d.
+Expected bytes 5649857 and Git blob SHA-1 25279a41030981ead9bf6134432aa6112429eb82.
+No red-team ground truth, C/control inference, source substitution, or causal-effect claim permitted.
