@@ -49,6 +49,21 @@ def load_records(data: bytes):
             raise ValueError(f"Invalid JSON at line {lineno}: {exc}") from exc
 
 
+def summarize_timestamps(timestamps: list[int]) -> dict:
+    """Summarize valid timestamps without mutating source-record order."""
+    nondecreasing = all(a <= b for a, b in zip(timestamps, timestamps[1:]))
+    min_ts = min(timestamps) if timestamps else None
+    max_ts = max(timestamps) if timestamps else None
+    span_ms = max_ts - min_ts if min_ts is not None and max_ts is not None and len(timestamps) >= 2 else None
+    return {
+        "valid_timestamp_count": len(timestamps),
+        "source_order_nondecreasing": nondecreasing,
+        "min_timestamp_ms": min_ts,
+        "max_timestamp_ms": max_ts,
+        "span_ms": span_ms,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", type=Path, help="Optional pre-downloaded data.json")
@@ -108,12 +123,10 @@ def main() -> int:
             typed_counts[obs.dchag_type] += 1
             role_counts[obs.evidence_role] += 1
 
-    timestamps.sort()
-    nondecreasing = all(a <= b for a, b in zip(timestamps, timestamps[1:]))
-    span_ms = timestamps[-1] - timestamps[0] if len(timestamps) >= 2 else None
-
     result = {
-        "experiment_id": "V3-OPTC-INGEST-001",
+        "experiment_id": "V3-OPTC-INGEST-001-C1",
+        "parent_protocol_id": "V3-OPTC-INGEST-001",
+        "correction": "C1 source-order temporal endpoint",
         "source": {
             "acquisition": acquisition,
             "immutable_url": SOURCE_URL,
@@ -133,13 +146,7 @@ def main() -> int:
         "evidence_roles": dict(sorted(role_counts.items())),
         "source_objects": dict(object_counts.most_common()),
         "source_actions": dict(action_counts.most_common()),
-        "temporal": {
-            "valid_timestamp_count": len(timestamps),
-            "source_order_nondecreasing": nondecreasing,
-            "min_timestamp_ms": timestamps[0] if timestamps else None,
-            "max_timestamp_ms": timestamps[-1] if timestamps else None,
-            "span_ms": span_ms,
-        },
+        "temporal": summarize_timestamps(timestamps),
         "claim_boundary": (
             "This experiment measures observational schema/typing coverage only. "
             "It does not estimate defensive-control causal effects."
