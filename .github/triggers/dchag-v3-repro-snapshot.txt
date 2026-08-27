@@ -1,0 +1,3 @@
+DCHAG-V3-REPRO-FINAL-2026-08-27
+Freeze the tracked scientific repository state after v3 closure audit, claim matrix, and OpTC C1/C2 correction retention.
+Exclude manuscript/cover-letter/editorial submission files if present; include scientific experiment audits and correction history.
