@@ -1,0 +1,5 @@
+V3-TMA-001-C1
+Frozen typed mechanism attribution execution.
+Uses immutable V3-SS-CONF-001 worlds and active V3-SS-SEL-001-C1 estimator.
+Common random numbers across all 32 coalitions per world/model/control.
+No retuning, world replacement, control exclusion, or private-SCM access before estimator freeze.
