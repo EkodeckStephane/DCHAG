@@ -1,0 +1,67 @@
+{
+  "experiment_id": "V3-TMA-001-C1",
+  "status": "PASS",
+  "workflow_run": 33258386552,
+  "execution_head": "9d4713c798575bf135441b22d49879210ef47faf",
+  "final_artifact_id": 9716909530,
+  "final_artifact_sha256": "b4e57bb104072fb55209eeb6a287465d2608ec0953e008df962f610c5397bd0a",
+  "n_worlds": 16,
+  "controls_per_world": 4,
+  "coalitions_per_control": 32,
+  "anchor_units_per_world": 1500,
+  "mc_reps_per_anchor": 100,
+  "primary_endpoint": {
+    "DCHAG_Learned_mean_world_TMAE": 0.002735284722222213,
+    "Dense_Sequential_GFormula_mean_world_TMAE": 0.0038510005787036955,
+    "mean_DCHAG_minus_dense_TMAE": -0.0011157158564814827,
+    "bootstrap_reps": 10000,
+    "bootstrap_seed": 20260852,
+    "bootstrap95_low": -0.0015380566840277753,
+    "bootstrap95_high": -0.0007259242766203751,
+    "exact_signflip_assignments": 65536,
+    "exact_two_sided_signflip_p": 0.000091552734375,
+    "DCHAG_lower_TMAE_worlds": 15,
+    "total_worlds": 16
+  },
+  "secondary_endpoints": {
+    "DCHAG_dominant_mechanism_accuracy": 0.921875,
+    "DCHAG_dominant_correct": 59,
+    "DCHAG_dominant_total": 64,
+    "Dense_dominant_mechanism_accuracy": 0.859375,
+    "Dense_dominant_correct": 55,
+    "Dense_dominant_total": 64,
+    "DCHAG_component_sign_agreement": 0.9937106918238994,
+    "Dense_component_sign_agreement": 0.9937106918238994,
+    "sign_agree_each": 158,
+    "sign_total_each": 159,
+    "max_estimator_closure_error": 5.551115123125783e-17,
+    "max_estimator_replay_consistency_error": 0.0,
+    "max_oracle_closure_error": 5.551115123125783e-17,
+    "max_oracle_replay_consistency_error": 0.0
+  },
+  "family_TMAE": {
+    "bec_payment": {"DCHAG_Learned": 0.002642189814814806, "Dense_Sequential_GFormula": 0.003632724537037035},
+    "exfiltration": {"DCHAG_Learned": 0.002379587962962953, "Dense_Sequential_GFormula": 0.0031789722222222115},
+    "helpdesk_identity": {"DCHAG_Learned": 0.0030401805555555503, "Dense_Sequential_GFormula": 0.0038428263888888848},
+    "itot_change": {"DCHAG_Learned": 0.0028791805555555424, "Dense_Sequential_GFormula": 0.004749479166666652}
+  },
+  "guardrails": {
+    "common_random_numbers_across_coalitions": true,
+    "confirmatory_hyperparameter_tuning": false,
+    "confirmatory_world_replacement": false,
+    "estimation_outputs_frozen_before_private_scoring": true,
+    "estimator_private_SCM_access": false,
+    "negative_and_null_components_retained": true
+  },
+  "independent_audit": {
+    "artifact_zip_digest_matches_GitHub": true,
+    "all_RESULT_SHA256_members_match": true,
+    "primary_model_means_recomputed": true,
+    "paired_difference_recomputed": true,
+    "bootstrap_10000_seed_20260852_reproduced": true,
+    "exact_65536_signflip_reproduced": true,
+    "dominant_mechanism_accuracy_recomputed": true,
+    "component_sign_agreement_recomputed": true
+  },
+  "conclusion": "The pre-specified primary endpoint supports lower typed mechanism-attribution error for DCHAG than the frozen dense sequential g-formula comparator in the 16-world semi-synthetic SCM benchmark. This is evidence for the value of DCHAG's typed causal structure for auditable mechanism-replay attribution, not evidence of general scalar-effect superiority, natural indirect effects, real LANL causal mechanisms, or real defensive-control effectiveness."
+}
