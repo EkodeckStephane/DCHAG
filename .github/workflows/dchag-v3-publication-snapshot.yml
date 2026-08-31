@@ -1,0 +1,93 @@
+name: DCHAG v3 publication snapshot
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-publication-snapshot.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  freeze-publication-snapshot:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact technical PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+
+      - name: Verify trigger-only technical commit
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(git rev-parse HEAD)"
+          SOURCE_SHA="$(git rev-parse HEAD^)"
+          CHANGED="$(git diff --name-only "${SOURCE_SHA}" "${HEAD_SHA}")"
+          test "${CHANGED}" = '.github/triggers/dchag-v3-publication-snapshot.txt'
+          echo "HEAD_SHA=${HEAD_SHA}" >> "$GITHUB_ENV"
+          echo "SOURCE_SHA=${SOURCE_SHA}" >> "$GITHUB_ENV"
+          echo "SOURCE_TREE=$(git rev-parse "${SOURCE_SHA}^{tree}")" >> "$GITHUB_ENV"
+
+      - name: Build deterministic source snapshot and SHA-256 manifest
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dchag-v3-snapshot
+          mkdir -p /tmp/dchag-v3-snapshot/root /tmp/dchag-v3-snapshot/out
+          git archive "${SOURCE_SHA}" | tar -x -C /tmp/dchag-v3-snapshot/root
+          rm -f /tmp/dchag-v3-snapshot/root/SHA256SUMS.txt
+          (
+            cd /tmp/dchag-v3-snapshot/root
+            find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
+          )
+          SOURCE_EPOCH="$(git show -s --format=%ct "${SOURCE_SHA}")"
+          tar --sort=name --mtime="@${SOURCE_EPOCH}" --owner=0 --group=0 --numeric-owner \
+            -C /tmp/dchag-v3-snapshot/root -czf /tmp/dchag-v3-snapshot/out/DCHAG_V3_PUBLICATION_SNAPSHOT.tar.gz .
+          cp /tmp/dchag-v3-snapshot/root/SHA256SUMS.txt /tmp/dchag-v3-snapshot/out/SHA256SUMS.txt
+          sha256sum /tmp/dchag-v3-snapshot/out/DCHAG_V3_PUBLICATION_SNAPSHOT.tar.gz > /tmp/dchag-v3-snapshot/out/ARCHIVE_SHA256.txt
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          out=Path('/tmp/dchag-v3-snapshot/out')
+          sums=(out/'SHA256SUMS.txt').read_text().splitlines()
+          meta={
+              'snapshot_id':'DCHAG-V3-PUBLICATION-SNAPSHOT-001',
+              'source_branch':'dchag-v3',
+              'source_commit':os.environ['SOURCE_SHA'],
+              'source_tree':os.environ['SOURCE_TREE'],
+              'technical_trigger_head':os.environ['HEAD_SHA'],
+              'tracked_files_hashed_excluding_manifest_itself':len(sums),
+              'archive_sha256':hashlib.sha256((out/'DCHAG_V3_PUBLICATION_SNAPSHOT.tar.gz').read_bytes()).hexdigest(),
+              'manifest_sha256':hashlib.sha256((out/'SHA256SUMS.txt').read_bytes()).hexdigest(),
+              'deterministic_archive':True,
+              'old_repository_SHA256SUMS_replaced_in_snapshot':True,
+          }
+          (out/'SNAPSHOT_METADATA.json').write_text(json.dumps(meta,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(meta,sort_keys=True))
+          PY
+
+      - name: Verify snapshot manifest
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dchag-v3-snapshot/verify
+          tar -xzf /tmp/dchag-v3-snapshot/out/DCHAG_V3_PUBLICATION_SNAPSHOT.tar.gz -C /tmp/dchag-v3-snapshot/verify
+          (cd /tmp/dchag-v3-snapshot/verify && sha256sum -c SHA256SUMS.txt)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('/tmp/dchag-v3-snapshot/out/SNAPSHOT_METADATA.json').read_text())
+          assert m['snapshot_id']=='DCHAG-V3-PUBLICATION-SNAPSHOT-001'
+          assert m['tracked_files_hashed_excluding_manifest_itself'] > 0
+          assert len(m['archive_sha256'])==64 and len(m['manifest_sha256'])==64
+          print('PUBLICATION_SNAPSHOT_VERIFY=PASS')
+          PY
+
+      - name: Upload frozen publication snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-publication-snapshot-001
+          path: /tmp/dchag-v3-snapshot/out/
+          retention-days: 90
+          if-no-files-found: error
