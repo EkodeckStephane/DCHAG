@@ -40,7 +40,7 @@ jobs:
           rm -f /tmp/dchag-v3-snapshot/root/SHA256SUMS.txt
           (
             cd /tmp/dchag-v3-snapshot/root
-            find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
+            find . -type f ! -path './SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
           )
           SOURCE_EPOCH="$(git show -s --format=%ct "${SOURCE_SHA}")"
           tar --sort=name --mtime="@${SOURCE_EPOCH}" --owner=0 --group=0 --numeric-owner \
