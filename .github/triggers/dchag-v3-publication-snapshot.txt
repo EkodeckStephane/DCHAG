@@ -1,0 +1,3 @@
+DCHAG-V3-PUBLICATION-SNAPSHOT-001-C1
+Trigger only. Source is the immediate parent commit on dchag-v3.
+Correction scope: packaging manifest excludes itself; no scientific code, result, seed, configuration, or claim changed.
