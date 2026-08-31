@@ -1,0 +1,113 @@
+{
+  "experiment_id": "V3-LANL-TRAJ-001",
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "counterfactual_effect_claim": false,
+    "defensive_intervention_C_inferred": false
+  },
+  "host_diagnostics": {
+    "excluded_before_overlap": 22619980,
+    "malformed_records": 0,
+    "missing_canonical_entity": 0,
+    "parsed_overlap_records_with_entity": 42224164,
+    "raw_records_seen": 64844144
+  },
+  "interval": {
+    "end": 172799,
+    "start": 118781
+  },
+  "network_diagnostics": {
+    "malformed_records": 0,
+    "parsed_overlap_records": 115949436,
+    "raw_records_seen": 115949436
+  },
+  "primary_width_seconds": 300,
+  "sensitivity_widths_seconds": [
+    60,
+    900
+  ],
+  "status": "PASS",
+  "summaries": {
+    "300": {
+      "H_rows": 282373,
+      "P_rows": 1543478,
+      "T_rows": 2464790,
+      "active_device_windows": 2642689,
+      "active_windows_per_device": {
+        "max": 181,
+        "median": 52,
+        "min": 1,
+        "p90": 181
+      },
+      "all_HPT_rows": 262856,
+      "fractions": {
+        "H": 0.10685063584856183,
+        "P": 0.5840558612837152,
+        "T": 0.9326825820215697,
+        "all_HPT": 0.09946535517421838,
+        "human_or_process_plus_technical": 0.5173711322066274,
+        "multimodal_devices": 0.3168389719297123,
+        "two_or_more_types": 0.5241237239796284
+      },
+      "human_or_process_plus_technical_rows": 1367251,
+      "multimodal_host_network_devices": 9899,
+      "two_or_more_type_rows": 1385096,
+      "unique_devices": 31243,
+      "width_seconds": 300
+    },
+    "60": {
+      "H_rows": 460271,
+      "P_rows": 3299693,
+      "T_rows": 8592095,
+      "active_device_windows": 9454133,
+      "active_windows_per_device": {
+        "max": 901,
+        "median": 91,
+        "min": 1,
+        "p90": 822
+      },
+      "all_HPT_rows": 343679,
+      "fractions": {
+        "H": 0.04868463348252029,
+        "P": 0.34902121643518236,
+        "T": 0.9088189260718037,
+        "all_HPT": 0.036352249328415416,
+        "human_or_process_plus_technical": 0.26247557549698103,
+        "multimodal_devices": 0.3168389719297123,
+        "two_or_more_types": 0.270172526661091
+      },
+      "human_or_process_plus_technical_rows": 2481479,
+      "multimodal_host_network_devices": 9899,
+      "two_or_more_type_rows": 2554247,
+      "unique_devices": 31243,
+      "width_seconds": 60
+    },
+    "900": {
+      "H_rows": 179670,
+      "P_rows": 525994,
+      "T_rows": 1064432,
+      "active_device_windows": 1080204,
+      "active_windows_per_device": {
+        "max": 61,
+        "median": 30,
+        "min": 1,
+        "p90": 61
+      },
+      "all_HPT_rows": 176489,
+      "fractions": {
+        "H": 0.1663296932801582,
+        "P": 0.4869395040196111,
+        "T": 0.9853990542527152,
+        "all_HPT": 0.1633848791524564,
+        "human_or_process_plus_technical": 0.47244964839974674,
+        "multimodal_devices": 0.3168389719297123,
+        "two_or_more_types": 0.47528337240002816
+      },
+      "human_or_process_plus_technical_rows": 510342,
+      "multimodal_host_network_devices": 9899,
+      "two_or_more_type_rows": 513403,
+      "unique_devices": 31243,
+      "width_seconds": 900
+    }
+  }
+}

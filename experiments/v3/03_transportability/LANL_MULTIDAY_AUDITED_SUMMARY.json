@@ -1,0 +1,106 @@
+{
+  "experiment_id": "V3-LANL-MULTIDAY-001",
+  "execution_status": "PASS",
+  "scientific_outcome": "MIXED_PARTIAL_SUPPORT",
+  "run_id": 32509278918,
+  "run_head_sha": "9f933e06168ee1d31b27ee58b46d95806c38268e",
+  "development_day": 2,
+  "confirmatory_days": [3, 4, 5],
+  "confirmatory_artifact": {
+    "id": 9457141464,
+    "zip_sha256": "9bb277715d28a0401d5f310c6333da5ce51cc79cd7f41173f5cf031cc5661e70",
+    "member": "LANL_MULTIDAY_CONFIRMATORY_SUMMARY.json",
+    "member_sha256": "c84966d6cd175578cd704710e2f89baea74785d118e88bc0b563533ee3519e54"
+  },
+  "day_artifacts": {
+    "3": {
+      "artifact_id": 9457085238,
+      "zip_sha256": "bacaceb461c274ee3f85fb6297edfe7dd3a218ad91eb896de5b83fca3dfc9c72",
+      "member_sha256": "82a70a5ac5ebdec2bc040d0f58e7ebcbe17d1ff677e7b84f716c2c7a811a8f2c",
+      "host_sha256": "6700881bf9f40153902dd3cfb8d245cd1e6a11290420d80a0a4eef88b428e759",
+      "network_sha256": "e3ff47f337fa1fd3003794d0f18a7019afb14e8c24d3434656216e398ce5b3d7"
+    },
+    "4": {
+      "artifact_id": 9457133197,
+      "zip_sha256": "b5a136293a0026b724060e95c3b11e7bf7c785356b5dc0bd7110f406b87e716b",
+      "member_sha256": "c2199080f089a9cf15cfe8606d1b0b98324bd23e5e8fdca13041d1e0347c26b8",
+      "host_sha256": "150f131b2340835d6ff960c35f407a76ec1224201bd656d8fe12383cea2625f6",
+      "network_sha256": "6c98c78b8fe1574e49570ef6a26c1db54020832a572b10dbae92c44b70c3b38c"
+    },
+    "5": {
+      "artifact_id": 9457004921,
+      "zip_sha256": "c7c1b9651c181ddefb9f3692a13890bef03b8a7554eb44979f176a883cdd793a",
+      "member_sha256": "546421e0f22a4666d01618372c660335650c3e30dbb61d03cfc8061fc8e5dde5",
+      "host_sha256": "966fcb1b98b3f3e63ffb8d8061a186e46db5487759645016269772b1551e0d87",
+      "network_sha256": "3b79a66b244ec33b5d12cd8dc4a0c0e0d7a827ed9ead0df9710c2663de22d1ff"
+    }
+  },
+  "confirmatory_volume": {
+    "host_records": 188435020,
+    "network_records": 622122932,
+    "total_records": 810557952,
+    "active_device_windows": 13023210,
+    "person_login_events": 17940084,
+    "excluded_nonperson_login_events": 30850842,
+    "malformed_records": 0
+  },
+  "density": {
+    "FixedFull_mean_edges_per_fold_each_day": [9.0, 9.0, 9.0],
+    "ScaledFull_mean_edges_per_fold_each_day": [4.4, 4.0, 5.0],
+    "FixedFull_mean_across_days": 9.0,
+    "ScaledFull_mean_across_days": 4.466666666666667,
+    "Scaled_to_Fixed_density_ratio": 0.4962962962962963,
+    "relative_edge_reduction": 0.5037037037037038,
+    "Scaled_reduces_edges_each_day": true
+  },
+  "prediction": {
+    "H_person_login": {
+      "FixedFull_mean_day_brier": 0.0012726985527195542,
+      "ScaledFull_mean_day_brier": 0.0013248477898734337,
+      "SelfLag_mean_day_brier": 0.001252263850142123,
+      "Scaled_relative_change_vs_FixedFull": 0.04097532525863634,
+      "Scaled_relative_change_vs_SelfLag": 0.05796217763778211,
+      "Scaled_better_than_SelfLag_each_day": false,
+      "interpretation": "H endpoint not supported: ScaledFull is worse than SelfLag on all three confirmatory days (day 5 is effectively tied but numerically worse)."
+    },
+    "P_process": {
+      "FixedFull_mean_day_brier": 0.0015399897765236137,
+      "ScaledFull_mean_day_brier": 0.0015447673907132591,
+      "SelfLag_mean_day_brier": 0.0015488815960984469,
+      "Scaled_relative_change_vs_FixedFull": 0.00310236747183506,
+      "Scaled_relative_change_vs_SelfLag": -0.0026562426692596786,
+      "Scaled_better_than_SelfLag_each_day": true,
+      "interpretation": "P endpoint supported versus SelfLag on all three days, with a small Brier advantage; FixedFull remains slightly better on average."
+    },
+    "T_network": {
+      "FixedFull_mean_day_brier": 0.03308014995778077,
+      "ScaledFull_mean_day_brier": 0.03308198528120613,
+      "SelfLag_mean_day_brier": 0.03689482108003989,
+      "Scaled_relative_change_vs_FixedFull": 0.00005548110959907659,
+      "Scaled_relative_change_vs_SelfLag": -0.10334338769558393,
+      "Scaled_better_than_SelfLag_each_day": true,
+      "interpretation": "T endpoint strongly supported versus SelfLag on all three days; predictive loss relative to FixedFull is negligible."
+    }
+  },
+  "scaled_edge_frequency_across_15_folds": {
+    "H_person_login[t-1]->H_person_login[t]": 5,
+    "P_process[t-1]->H_person_login[t]": 10,
+    "P_process[t-1]->P_process[t]": 15,
+    "P_process[t-1]->T_network[t]": 15,
+    "T_network[t-1]->P_process[t]": 7,
+    "T_network[t-1]->T_network[t]": 15
+  },
+  "scaled_edges_selected_in_all_15_folds": [
+    "P_process[t-1]->P_process[t]",
+    "P_process[t-1]->T_network[t]",
+    "T_network[t-1]->T_network[t]"
+  ],
+  "guardrails": {
+    "attack_or_red_team_labels_read": false,
+    "counterfactual_effect_claim": false,
+    "defensive_intervention_C_inferred": false,
+    "posthoc_hyperparameter_selection": false,
+    "causal_edge_claim": false
+  },
+  "claim_boundary": "Confirmatory evidence supports multi-day observational transportability of a substantially sparser lagged dependency mechanism for P/T predictive structure. It does not support a cross-channel predictive gain for H_person_login and does not validate causal edges or intervention effects."
+}

@@ -1,0 +1,58 @@
+name: DCHAG v3 OpTC pilot ingestion
+
+on:
+  push:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/workflows/dchag-v3-optc-ingest.yml'
+      - 'experiments/v3/01_external_datasets/optc_adapter.py'
+      - 'experiments/v3/01_external_datasets/test_optc_adapter.py'
+      - 'experiments/v3/01_external_datasets/run_optc_ingest.py'
+      - 'experiments/v3/01_external_datasets/OPTC_SAMPLE_PROVENANCE.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/dchag-v3-optc-ingest.yml'
+      - 'experiments/v3/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  optc-ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependency
+        run: python -m pip install --disable-pip-version-check pytest
+
+      - name: Run frozen adapter tests
+        working-directory: experiments/v3/01_external_datasets
+        run: python -m pytest -q test_optc_adapter.py
+
+      - name: Ingest immutable OpTC pilot sample
+        working-directory: experiments/v3/01_external_datasets
+        run: python run_optc_ingest.py --output OPTC_INGEST_RESULTS.json
+
+      - name: Show retained aggregate result
+        working-directory: experiments/v3/01_external_datasets
+        run: cat OPTC_INGEST_RESULTS.json
+
+      - name: Upload aggregate result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-optc-ingest-results
+          path: experiments/v3/01_external_datasets/OPTC_INGEST_RESULTS.json
+          if-no-files-found: error
+          retention-days: 90

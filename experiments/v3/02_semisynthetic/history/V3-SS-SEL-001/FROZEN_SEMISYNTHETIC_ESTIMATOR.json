@@ -1,0 +1,31 @@
+{
+  "admissible_current_slice": "public-order predecessors",
+  "admissible_lag1": "full public observed history",
+  "confirmatory_tuning_allowed": false,
+  "experiment_id": "V3-SS-SEL-001",
+  "intervention_mc_reps_per_anchor": 100,
+  "local_max_iter": 500,
+  "local_model": "logistic main effects plus all selected pairwise interactions",
+  "local_model_C": 0.7,
+  "local_solver": "lbfgs",
+  "max_parents": 8,
+  "mi_fallback": "mutual_info_classif(discrete_features=True, random_state=0), descending MI then feature-name tie break",
+  "screening": "L1 logistic conditional screening",
+  "screening_C": 0.05,
+  "screening_max_iter": 500,
+  "screening_solver": "liblinear",
+  "selection_candidates": [
+    6,
+    8,
+    10
+  ],
+  "selection_code_sha256": "6ebe0e1c440319e68a0c5df52511a6a7a952b9d07473d4a5a64070915a0a22f9",
+  "selection_primary_score": "unweighted mean of four development-world effect MAEs",
+  "software": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "scikit_learn": "1.8.0",
+    "scipy": "1.17.0"
+  },
+  "time0_lag1": 0
+}

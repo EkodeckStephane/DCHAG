@@ -1,0 +1,103 @@
+name: DCHAG v3 OpTC ingestion C2
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-optc-ingest-c2.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  optc-ingest-c2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen test dependency
+        run: python -m pip install --disable-pip-version-check pytest==9.1.1
+
+      - name: Verify frozen protocol and correction chain
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/01_external_datasets/OPTC_INGEST_PROTOCOL.md
+          test -f experiments/v3/01_external_datasets/OPTC_INGEST_EXECUTION_AMENDMENT.md
+          test -f experiments/v3/01_external_datasets/OPTC_INGEST_CORRECTION_C1.md
+          test -f experiments/v3/01_external_datasets/OPTC_INGEST_C1_FAILURE.md
+          test -f experiments/v3/01_external_datasets/OPTC_INGEST_CORRECTION_C2.md
+          python -m py_compile \
+            experiments/v3/01_external_datasets/optc_adapter.py \
+            experiments/v3/01_external_datasets/run_optc_ingest.py
+
+      - name: Run frozen mapping and C1/C2 temporal tests
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          set -euo pipefail
+          python -m pytest -q \
+            test_optc_adapter.py \
+            test_run_optc_ingest.py \
+            test_optc_timestamp_c2.py
+
+      - name: Execute immutable OpTC ingestion C2
+        working-directory: experiments/v3/01_external_datasets
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/optc-c2
+          mkdir -p /tmp/optc-c2
+          python run_optc_ingest.py --output /tmp/optc-c2/OPTC_INGEST_RESULTS.json
+
+      - name: Validate exact aggregate mapping invariants
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('/tmp/optc-c2/OPTC_INGEST_RESULTS.json'))
+          assert r['experiment_id']=='V3-OPTC-INGEST-001-C2'
+          assert r['parent_protocol_id']=='V3-OPTC-INGEST-001'
+          assert r['parent_failed_execution']=='V3-OPTC-INGEST-001-C1'
+          assert r['source']['bytes']==5649857
+          assert r['source']['git_blob_sha1']=='25279a41030981ead9bf6134432aa6112429eb82'
+          assert not r['red_team_ground_truth_used']
+          assert r['records']>0
+          assert r['mapping_failures']==0
+          assert r['temporal']['valid_timestamp_count']==r['records']
+          assert isinstance(r['temporal']['source_order_nondecreasing'], bool)
+          typed=r['typed_observations']
+          assert set(typed)=={'H','P','T'}
+          assert typed['H']==r['record_coverage']['principal_records']
+          assert typed['P']==r['source_objects'].get('PROCESS',0)
+          assert typed['T']==r['records']-r['source_objects'].get('PROCESS',0)
+          assert sum(typed.values())==r['records']+r['record_coverage']['principal_records']
+          assert 'C' not in typed
+          print('OPTC_C2_MAPPING_INVARIANTS=PASS')
+          PY
+
+      - name: Freeze execution provenance and hashes
+        run: |
+          set -euo pipefail
+          python -V > /tmp/optc-c2/PYTHON_VERSION.txt 2>&1
+          python -m pip freeze > /tmp/optc-c2/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/optc-c2/WORKFLOW_HEAD.txt
+          cp experiments/v3/01_external_datasets/OPTC_INGEST_PROTOCOL.md /tmp/optc-c2/
+          cp experiments/v3/01_external_datasets/OPTC_INGEST_EXECUTION_AMENDMENT.md /tmp/optc-c2/
+          cp experiments/v3/01_external_datasets/OPTC_INGEST_CORRECTION_C1.md /tmp/optc-c2/
+          cp experiments/v3/01_external_datasets/OPTC_INGEST_C1_FAILURE.md /tmp/optc-c2/
+          cp experiments/v3/01_external_datasets/OPTC_INGEST_CORRECTION_C2.md /tmp/optc-c2/
+          (cd /tmp/optc-c2 && find . -type f ! -name 'SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Upload aggregate C2 result only
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-optc-ingest-c2-results
+          path: /tmp/optc-c2/
+          retention-days: 90
+          if-no-files-found: error

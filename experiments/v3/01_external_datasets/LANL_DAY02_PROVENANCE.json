@@ -1,0 +1,21 @@
+{
+  "experiment_id": "V3-LANL-INGEST-001",
+  "dataset": "LANL Unified Host and Network Data Set",
+  "selection_rule": "earliest released day with both host and netflow streams available",
+  "day": 2,
+  "sources": {
+    "host": {
+      "url": "https://lanl.ma.ic.ac.uk/data/2017/wls/wls_day-02.bz2",
+      "official_index_reported_size": "462 MB",
+      "format": "bzip2-compressed JSON lines"
+    },
+    "network": {
+      "url": "https://lanl.ma.ic.ac.uk/data/2017/netflow/netflow_day-02.bz2",
+      "official_index_reported_size": "1.1 GB",
+      "format": "bzip2-compressed CSV"
+    }
+  },
+  "integrity_policy": "Record exact downloaded byte size and SHA-256 digest for each source in the retained result. Raw files are not committed to DCHAG.",
+  "label_policy": "No attack/red-team label source is read during ingestion or mapping.",
+  "intervention_policy": "No defensive-control intervention C is inferred from observational telemetry."
+}

@@ -1,0 +1,27 @@
+{
+  "source_snapshot_sha256": "d821d3f6e5a6f73efd7935f0cc2223f55e029b1730edb1fbfd8bfc2d0b7dace3",
+  "confirmatory_worlds": 16,
+  "train_trajectories_per_world": 1600,
+  "train_rows_by_world": {
+    "confirm_bec_1": 6400,
+    "confirm_bec_2": 6400,
+    "confirm_bec_3": 9600,
+    "confirm_bec_4": 6400,
+    "confirm_exfiltration_1": 8000,
+    "confirm_exfiltration_2": 9600,
+    "confirm_exfiltration_3": 8000,
+    "confirm_exfiltration_4": 6400,
+    "confirm_helpdesk_1": 6400,
+    "confirm_helpdesk_2": 9600,
+    "confirm_helpdesk_3": 6400,
+    "confirm_helpdesk_4": 6400,
+    "confirm_itot_1": 6400,
+    "confirm_itot_2": 8000,
+    "confirm_itot_3": 6400,
+    "confirm_itot_4": 6400
+  },
+  "median_train_rows": 6400,
+  "mean_train_rows": 7300.0,
+  "derivation": "ntrain from each recovered confirmatory data_manifest.json multiplied by horizon from the paired public schema.json",
+  "use_in_v3": "6400 is frozen as the reference sample size for V3-LANL-REGSCALE-001 before diagnostic execution; it is not selected from LANL performance."
+}

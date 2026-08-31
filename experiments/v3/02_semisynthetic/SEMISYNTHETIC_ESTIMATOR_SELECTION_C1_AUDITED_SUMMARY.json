@@ -1,0 +1,78 @@
+{
+  "experiment_id": "V3-SS-SEL-001-C1",
+  "correction_parent": "V3-SS-SEL-001",
+  "status": "PASS",
+  "workflow_run": 32602846144,
+  "workflow_job": 97103604127,
+  "workflow_head": "6e6a60ed3b6cd7c1ed6255f5e75bbfce50ba6f8e",
+  "artifact_id": 9483381372,
+  "artifact_name": "dchag-v3-semisynthetic-estimator-selection-c1",
+  "artifact_zip_sha256": "43963f4c4b3df068e11365c6e282540359c3e9198e7144de006f2a9d738e74b8",
+  "artifact_members": {
+    "FROZEN_SEMISYNTHETIC_ESTIMATOR_C1.json": "d6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31",
+    "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_DETAILS.json": "11cbf0a47cbb528dac80c4c93d1bc90b6acebaf376821671f92af15759921e19",
+    "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_RESULTS.json": "aac4c50bc5d6d11426d624c466105e1a474c49606e3b3d84a5484b28277fea90",
+    "SEMISYNTHETIC_ESTIMATOR_SELECTION_C1_WORLD_METRICS.csv": "bb0c587244ef4d780333faf85d2b02d6855b1dc7292860f44857ddcc27d43fe6",
+    "SOFTWARE_FREEZE.txt": "51eee9c68777045d9552cbd4592e31ddc1f905e500f5797e769fb3c33bb29c4e",
+    "WORKFLOW_HEAD.txt": "a69d2e8bc0a944435e1a6d1fb16b7671c0a002c8da0a7b751298c3075ac366d6"
+  },
+  "selection_protocol_correction": "SEMISYNTHETIC_ESTIMATOR_SELECTION_CORRECTION_C1.md",
+  "source_stage_a_artifact_id": 9462315359,
+  "source_stage_a_zip_sha256": "ca33420fe43da84d85b2785f9a845534cc22399f2ea30ed9fda416c64ecbecb5",
+  "corrected_anchor_units_per_world": {
+    "train": 1100,
+    "test": 400,
+    "standardization": 1500
+  },
+  "anchor_prevalence_reconstruction_check": "PASS; corrected train+test anchor prevalences equal the original generator summary exactly in all four worlds (maximum absolute difference 0)",
+  "selected_max_parents": 8,
+  "candidate_summary": [
+    {
+      "max_parents": 8,
+      "primary_mean_world_effect_mae": 0.004778055555555557,
+      "mean_signed_bias": 0.0019902777777777844,
+      "mean_kendall": 0.9166666666666667,
+      "mean_spearman": 0.95,
+      "top_control_accuracy": 1.0,
+      "mean_normalized_regret": 0.0,
+      "mean_edge_f1": 0.8273656085013126,
+      "mean_brier_final_y": 0.07812276038875521,
+      "total_mi_fallback_nodes": 0
+    },
+    {
+      "max_parents": 6,
+      "primary_mean_world_effect_mae": 0.005584166666666671,
+      "mean_signed_bias": -0.0014280555555555483,
+      "mean_kendall": 0.9166666666666667,
+      "mean_spearman": 0.95,
+      "top_control_accuracy": 1.0,
+      "mean_normalized_regret": 0.0,
+      "mean_edge_f1": 0.8863314601562893,
+      "mean_brier_final_y": 0.07911943247778967,
+      "total_mi_fallback_nodes": 0
+    },
+    {
+      "max_parents": 10,
+      "primary_mean_world_effect_mae": 0.006224861111111106,
+      "mean_signed_bias": 0.003207361111111121,
+      "mean_kendall": 0.8333333333333335,
+      "mean_spearman": 0.8999999999999999,
+      "top_control_accuracy": 1.0,
+      "mean_normalized_regret": 0.0,
+      "mean_edge_f1": 0.7999828001375988,
+      "mean_brier_final_y": 0.07843307602607488,
+      "total_mi_fallback_nodes": 0
+    }
+  ],
+  "selection_code_sha256": "6f021d0c0a70c1a4603d773aab6d4ddef28a1594c2f2b040edc893ecb777e708",
+  "active_frozen_estimator_sha256": "d6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31",
+  "guardrails": {
+    "confirmatory_worlds_generated": 0,
+    "confirmatory_worlds_scored": 0,
+    "confirmatory_hyperparameter_tuning": false,
+    "candidate_set_changed_after_inspection": false,
+    "split_local_trajectory_ids_qualified_by_split": true,
+    "standardization_anchor_units_per_world": 1500
+  },
+  "claim_boundary": "Corrected development-only estimator selection. Numerical development performance is not RQ1 confirmatory evidence."
+}

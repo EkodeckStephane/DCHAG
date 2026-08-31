@@ -1,0 +1,66 @@
+name: DCHAG v3 final manifest sync
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-manifest-sync.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-manifest:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact current dchag-v3 base
+        uses: actions/checkout@v4
+        with:
+          ref: dchag-v3
+          fetch-depth: 2
+
+      - name: Verify triggering PR is trigger-only and base has not drifted
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          BASE_SHA="$(git rev-parse HEAD)"
+          test "${BASE_SHA}" = "${PR_BASE_SHA}"
+          echo "BASE_SHA=${BASE_SHA}" >> "$GITHUB_ENV"
+          echo "BASE_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_ENV"
+          git fetch origin "${{ github.event.pull_request.head.sha }}" --depth=1
+          CHANGED="$(git diff --name-only "${BASE_SHA}" "${{ github.event.pull_request.head.sha }}")"
+          test "${CHANGED}" = '.github/triggers/dchag-v3-manifest-sync.txt'
+          echo 'TRIGGER_ONLY_AND_BASE_EXACT=PASS'
+
+      - name: Regenerate manifest from all tracked files except itself
+        run: |
+          set -euo pipefail
+          git ls-files -z | grep -z -v '^SHA256SUMS.txt$' | sort -z | xargs -0 sha256sum > /tmp/SHA256SUMS.txt
+          EXPECTED="$(git ls-files | grep -v '^SHA256SUMS.txt$' | wc -l)"
+          ACTUAL="$(wc -l < /tmp/SHA256SUMS.txt)"
+          test "${EXPECTED}" -eq "${ACTUAL}"
+          ! grep -q 'SHA256SUMS.txt' /tmp/SHA256SUMS.txt
+          cp /tmp/SHA256SUMS.txt SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+          test "$(git diff --name-only)" = 'SHA256SUMS.txt'
+          echo "MANIFEST_ENTRIES=${ACTUAL}" >> "$GITHUB_ENV"
+          echo "MANIFEST_SHA256=$(sha256sum SHA256SUMS.txt | awk '{print $1}')" >> "$GITHUB_ENV"
+          echo 'FINAL_MANIFEST_VERIFY=PASS'
+
+      - name: Commit only the verified manifest to dchag-v3
+        run: |
+          set -euo pipefail
+          git config user.name 'DCHAG reproducibility bot'
+          git config user.email '166718028+EkodeckStephane@users.noreply.github.com'
+          git add SHA256SUMS.txt
+          test "$(git diff --cached --name-only)" = 'SHA256SUMS.txt'
+          git commit -m 'Synchronize final DCHAG v3 SHA-256 manifest'
+          git push origin HEAD:dchag-v3
+          echo "MANIFEST_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Emit synchronization record
+        run: |
+          printf 'source_base=%s\nsource_tree=%s\nmanifest_entries=%s\nmanifest_sha256=%s\nmanifest_commit=%s\n' \
+            "$BASE_SHA" "$BASE_TREE" "$MANIFEST_ENTRIES" "$MANIFEST_SHA256" "$MANIFEST_COMMIT"

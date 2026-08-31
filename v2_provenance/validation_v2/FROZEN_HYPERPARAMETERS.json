@@ -1,0 +1,10 @@
+{
+  "max_parents": 10,
+  "screening": "L1 logistic conditional screening",
+  "screening_C": 0.05,
+  "local_model": "logistic main effects plus all selected pairwise interactions",
+  "local_model_C": 0.7,
+  "dense_baseline": "HistGradientBoostingClassifier over all temporally admissible observed history",
+  "development_caps": [6, 8, 10],
+  "development_mean_effect_mae": {"6": 0.036566, "8": 0.020020, "10": 0.018434}
+}

@@ -1,0 +1,318 @@
+name: DCHAG v3 semisynthetic decision uncertainty RQ4
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-semisynth-decision-uncertainty.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  prepare-decision-input:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+
+      - name: Run RQ4 regression guardrails
+        run: |
+          pytest -q experiments/v3/05_decision_uncertainty/test_semisynthetic_decision_uncertainty.py
+          python -m py_compile \
+            experiments/v3/05_decision_uncertainty/run_semisynthetic_decision_uncertainty.py \
+            experiments/v3/05_decision_uncertainty/score_semisynthetic_decision_uncertainty.py
+
+      - name: Verify frozen protocol and active corrected estimator
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/05_decision_uncertainty/SEMISYNTHETIC_DECISION_UNCERTAINTY_PROTOCOL.md
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'))
+          assert x['status']=='ACTIVE'
+          assert x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8
+          assert x['standardization_anchor_units_per_world']==1500
+          assert x['split_local_trajectory_ids_qualified_by_split']
+          assert not x['confirmatory_tuning_allowed']
+          print('DEC_FROZEN_ESTIMATOR=PASS')
+          PY
+
+      - name: Download immutable audited RQ1 public artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-public /tmp/dec-public
+          mkdir -p /tmp/rq1-public /tmp/dec-public
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" \
+            -o /tmp/rq1-public.zip
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-public.zip -d /tmp/rq1-public
+          test -d /tmp/rq1-public/public
+
+      - name: Build target-outcome-free RQ4 estimator input
+        run: |
+          python - <<'PY'
+          import hashlib,json,shutil
+          from pathlib import Path
+          import numpy as np
+          import pandas as pd
+          anchors=['A_person','A_process','A_technical']
+          families=['bec_payment','exfiltration','helpdesk_identity','itot_change']
+          worlds=sorted([f'confirm_{f}_{i}' for f in families for i in range(1,5)])
+          src=Path('/tmp/rq1-public/public'); dst=Path('/tmp/dec-public')
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,'rb') as f:
+                  for b in iter(lambda:f.read(1<<20),b''): h.update(b)
+              return h.hexdigest()
+          files={}
+          for world in worlds:
+              wsrc=src/world; wdst=dst/world; wdst.mkdir(parents=True,exist_ok=True)
+              schema=json.loads((wsrc/'schema.json').read_text())
+              h=int(schema['horizon']); assert h==6
+              train=pd.read_csv(wsrc/'train.csv').sort_values(['trajectory_id','time']).reset_index(drop=True)
+              test=pd.read_csv(wsrc/'test.csv').sort_values(['trajectory_id','time']).reset_index(drop=True)
+              assert train.trajectory_id.nunique()==1100 and test.trajectory_id.nunique()==400
+              assert len(train)==1100*h and len(test)==400*h
+              ta=train[anchors].to_numpy(np.int8).reshape(1100,h,3)
+              qa=test[anchors].to_numpy(np.int8).reshape(400,h,3)
+              shutil.copy2(wsrc/'schema.json',wdst/'schema.json')
+              shutil.copy2(wsrc/'train.csv',wdst/'train.csv')
+              np.savez_compressed(wdst/'target_anchors.npz',train_anchors=ta,test_anchors=qa)
+              assert not (wdst/'test.csv').exists()
+              assert not any((wdst/name).exists() for name in ['world.json','oracle_effects.json','true_edges.json'])
+              for name in ['schema.json','train.csv','target_anchors.npz']:
+                  files[f'{world}/{name}']=sha(wdst/name)
+          (dst/'DECISION_INPUT_MANIFEST.json').write_text(json.dumps({
+              'experiment_id':'V3-SS-DEC-001','worlds':16,'files':files,
+              'target_test_outcomes_present':False,'target_test_endogenous_variables_present':False,
+              'private_SCM_or_oracle_present':False,'target_anchor_nodes':anchors
+          },indent=2,sort_keys=True)+'\n')
+          assert len(list(dst.glob('confirm_*')))==16
+          assert not any(p.name=='test.csv' for p in dst.rglob('*') if p.is_file())
+          print('DEC_TARGET_OUTCOME_FIREWALL=PASS')
+          PY
+
+      - name: Upload clean RQ4 estimator input
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-dec-public-input
+          path: /tmp/dec-public/
+          retention-days: 90
+          if-no-files-found: error
+
+  estimate-world:
+    needs: prepare-decision-input
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        world:
+          - confirm_helpdesk_identity_1
+          - confirm_helpdesk_identity_2
+          - confirm_helpdesk_identity_3
+          - confirm_helpdesk_identity_4
+          - confirm_bec_payment_1
+          - confirm_bec_payment_2
+          - confirm_bec_payment_3
+          - confirm_bec_payment_4
+          - confirm_exfiltration_1
+          - confirm_exfiltration_2
+          - confirm_exfiltration_3
+          - confirm_exfiltration_4
+          - confirm_itot_change_1
+          - confirm_itot_change_2
+          - confirm_itot_change_3
+          - confirm_itot_change_4
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+
+      - name: Download target-outcome-free estimator input only
+        uses: actions/download-artifact@v4
+        with:
+          name: dchag-v3-ss-dec-public-input
+          path: /tmp/dec-public
+
+      - name: Enforce estimator physical firewall
+        run: |
+          set -euo pipefail
+          test -f /tmp/dec-public/${{ matrix.world }}/train.csv
+          test -f /tmp/dec-public/${{ matrix.world }}/schema.json
+          test -f /tmp/dec-public/${{ matrix.world }}/target_anchors.npz
+          test ! -e /tmp/dec-public/${{ matrix.world }}/test.csv
+          ! find /tmp/dec-public -type f \( -name 'world.json' -o -name 'oracle_effects.json' -o -name 'true_edges.json' \) | grep -q .
+          test ! -d /tmp/rq1-private
+          echo 'DEC_ESTIMATOR_FIREWALL=PASS'
+
+      - name: Run and freeze 40 cluster-bootstrap perturbations
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dec-estimation
+          python experiments/v3/05_decision_uncertainty/run_semisynthetic_decision_uncertainty.py \
+            --public-root /tmp/dec-public \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --world '${{ matrix.world }}' \
+            --outdir /tmp/dec-estimation
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          import pandas as pd
+          world=os.environ['WORLD']; root=Path('/tmp/dec-estimation')/world
+          md=json.loads((root/'run_metadata.json').read_text())
+          fr=json.loads((root/'FREEZE_MANIFEST.json').read_text())
+          assert md['experiment_id']=='V3-SS-DEC-001' and md['world']==world
+          assert md['bootstrap_reps']==40 and md['bootstrap_cluster_size']==1100
+          assert md['standardization_anchor_units']==1500 and md['mc_reps_per_anchor']==25
+          assert not md['estimator_private_SCM_access'] and not md['target_outcomes_used_for_fit']
+          assert not md['hyperparameter_retuning'] and not md['world_replacement'] and not md['bootstrap_replacement_after_results']
+          assert fr['status']=='decision_uncertainty_outputs_frozen_before_private_scoring'
+          assert fr['bootstrap_reps']==40 and fr['standardization_anchor_units']==1500 and fr['mc_reps_per_anchor']==25
+          assert not fr['private_scoring_material_access']
+          d=pd.read_csv(root/'bootstrap_diagnostics.csv'); e=pd.read_csv(root/'bootstrap_effects.csv')
+          assert len(d)==40 and (d.sampled_clusters==1100).all()
+          assert len(e)==40*8 and (e.anchor_units==1500).all() and (e.mc_reps_per_anchor==25).all()
+          print('DEC_WORLD_FREEZE=PASS',world)
+          PY
+        env:
+          WORLD: ${{ matrix.world }}
+
+      - name: Upload frozen decision perturbations
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-ss-dec-estimate-${{ matrix.world }}
+          path: /tmp/dec-estimation/
+          retention-days: 90
+          if-no-files-found: error
+
+  score-decision-uncertainty:
+    needs:
+      - prepare-decision-input
+      - estimate-world
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install frozen scoring dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy==2.4.6 pandas==3.0.5 scipy==1.17.0
+
+      - name: Download all already frozen world artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-ss-dec-estimate-*
+          path: /tmp/dec-estimations
+          merge-multiple: true
+
+      - name: Verify all 16 freezes before any private scoring download
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'experiments/v3/05_decision_uncertainty')
+          import score_semisynthetic_decision_uncertainty as s
+          worlds=s.discover_worlds(Path('/tmp/dec-estimations'))
+          assert sorted(worlds)==s.WORLDS and len(worlds)==16
+          for w,p in worlds.items(): s.verify_world(p,w)
+          print('ALL_16_DECISION_OUTPUTS_FROZEN=PASS')
+          PY
+          test ! -e /tmp/rq1-private.zip
+          test ! -e /tmp/rq1-results.zip
+
+      - name: Download immutable private oracle and audited RQ1 result after freeze gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-private /tmp/rq1-results
+          mkdir -p /tmp/rq1-private /tmp/rq1-results
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870511/zip" -o /tmp/rq1-private.zip
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489911175/zip" -o /tmp/rq1-results.zip
+          echo '898dde43e340d2852c43eab940fe46b6dc9652d2620dcf79705c061fcad03278  /tmp/rq1-private.zip' | sha256sum -c -
+          echo 'dad2d38262c01f5f499c58b1b44229a8908fc29cb7cf6d41fefb51461d3f6a24  /tmp/rq1-results.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-private.zip -d /tmp/rq1-private
+          unzip -q /tmp/rq1-results.zip -d /tmp/rq1-results
+          test -d /tmp/rq1-private/private
+          test -f /tmp/rq1-results/world_metrics.csv
+
+      - name: Score frozen decision perturbations against private oracle
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/dec-scored
+          python experiments/v3/05_decision_uncertainty/score_semisynthetic_decision_uncertainty.py \
+            --estimation-root /tmp/dec-estimations \
+            --private-root /tmp/rq1-private/private \
+            --rq1-results /tmp/rq1-results \
+            --outdir /tmp/dec-scored
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path('/tmp/dec-scored')
+          r=json.loads((root/'SEMISYNTHETIC_DECISION_UNCERTAINTY_RESULTS.json').read_text())
+          assert r['experiment_id']=='V3-SS-DEC-001' and r['status']=='PASS'
+          assert r['n_independent_worlds']==16 and r['bootstrap_cluster_resamples_per_world']==40
+          assert r['mc_reps_per_anchor']==25 and r['standardization_anchor_units_per_world']==1500
+          assert r['primary_endpoint']['world_bootstrap']['reps']==10000
+          assert r['primary_endpoint']['world_bootstrap']['seed']==20260845
+          assert r['secondary_dchag_minus_dense_switch_rate']['world_bootstrap']['seed']==20260846
+          assert r['secondary_dchag_minus_dense_switch_rate']['exact_signflip']['assignments']==65536
+          g=r['guardrails']
+          assert g['all_16_world_estimation_outputs_frozen_before_private_scoring']
+          assert g['independent_unit_is_world_not_bootstrap_replicate']
+          assert not g['estimator_private_SCM_access'] and not g['hyperparameter_retuning'] and not g['world_replacement'] and not g['bootstrap_replacement']
+          assert len(pd.read_csv(root/'world_decision_stability.csv'))==32
+          assert len(pd.read_csv(root/'bootstrap_decisions.csv'))==16*2*40
+          assert len(pd.read_csv(root/'pairwise_rank_reversals.csv'))==16*2*6
+          print('DECISION_SCORING_GUARDRAILS=PASS')
+          PY
+          python -m pip freeze > /tmp/dec-scored/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/dec-scored/WORKFLOW_HEAD.txt
+
+      - name: Upload scored RQ4 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-semisynthetic-decision-uncertainty-results
+          path: /tmp/dec-scored/
+          retention-days: 90
+          if-no-files-found: error

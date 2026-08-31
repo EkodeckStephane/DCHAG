@@ -1,0 +1,232 @@
+name: DCHAG v3 typed mechanism attribution
+
+on:
+  pull_request:
+    branches:
+      - dchag-v3
+    paths:
+      - '.github/triggers/dchag-v3-tma.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact execution revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0 pytest==9.1.1
+      - name: Verify protocol, amendment, and active estimator
+        run: |
+          set -euo pipefail
+          test -f experiments/v3/07_typed_effect_attribution/TYPED_MECHANISM_ATTRIBUTION_PROTOCOL.md
+          test -f experiments/v3/07_typed_effect_attribution/TYPED_MECHANISM_ATTRIBUTION_PROTOCOL_C1_AMENDMENT.md
+          echo 'd6dfcf53370b5a2b0408f08ddfd88325ca58ce3737750457abd516769a501c31  experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json' | sha256sum -c -
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json'))
+          assert x['status']=='ACTIVE' and x['experiment_id']=='V3-SS-SEL-001-C1'
+          assert x['max_parents']==8 and x['standardization_anchor_units_per_world']==1500
+          assert x['split_local_trajectory_ids_qualified_by_split'] and not x['confirmatory_tuning_allowed']
+          print('TMA_FROZEN_ESTIMATOR=PASS')
+          PY
+      - name: Run regression and non-regression tests
+        run: |
+          pytest -q \
+            experiments/v3/02_semisynthetic/test_build_semisynthetic_oracle.py \
+            experiments/v3/02_semisynthetic/test_select_semisynthetic_estimator.py \
+            experiments/v3/02_semisynthetic/test_semisynthetic_confirmatory_pipeline.py \
+            experiments/v3/03_transportability/test_semisynthetic_lofo.py \
+            experiments/v3/07_typed_effect_attribution/test_typed_mechanism_attribution.py
+          python -m py_compile \
+            experiments/v3/07_typed_effect_attribution/tma_common.py \
+            experiments/v3/07_typed_effect_attribution/run_typed_mechanism_attribution_estimators.py \
+            experiments/v3/07_typed_effect_attribution/score_typed_mechanism_attribution.py
+
+  estimate-world:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        world:
+          - confirm_helpdesk_identity_1
+          - confirm_helpdesk_identity_2
+          - confirm_helpdesk_identity_3
+          - confirm_helpdesk_identity_4
+          - confirm_bec_payment_1
+          - confirm_bec_payment_2
+          - confirm_bec_payment_3
+          - confirm_bec_payment_4
+          - confirm_exfiltration_1
+          - confirm_exfiltration_2
+          - confirm_exfiltration_3
+          - confirm_exfiltration_4
+          - confirm_itot_change_1
+          - confirm_itot_change_2
+          - confirm_itot_change_3
+          - confirm_itot_change_4
+    steps:
+      - name: Checkout exact execution revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+      - name: Download immutable RQ1 public artifact only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-public /tmp/tma-estimate
+          mkdir -p /tmp/rq1-public /tmp/tma-estimate
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" \
+            -o /tmp/rq1-public.zip
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-public.zip -d /tmp/rq1-public
+          test -d /tmp/rq1-public/public
+          test ! -e /tmp/rq1-private
+          ! find /tmp/rq1-public -type f \( -name 'world.json' -o -name 'oracle_effects.json' -o -name 'true_edges.json' \) | grep -q .
+          echo 'TMA_ESTIMATOR_PRIVATE_INPUT_ABSENT=PASS'
+      - name: Estimate and freeze typed attribution
+        run: |
+          set -euo pipefail
+          python experiments/v3/07_typed_effect_attribution/run_typed_mechanism_attribution_estimators.py \
+            --public-root /tmp/rq1-public/public \
+            --frozen-estimator experiments/v3/02_semisynthetic/FROZEN_SEMISYNTHETIC_ESTIMATOR.json \
+            --world '${{ matrix.world }}' \
+            --outdir /tmp/tma-estimate
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          w='${{ matrix.world }}'; root=Path('/tmp/tma-estimate')/w
+          md=json.loads((root/'run_metadata.json').read_text())
+          fr=json.loads((root/'FREEZE_MANIFEST.json').read_text())
+          assert md['experiment_id']=='V3-TMA-001-C1'
+          assert md['standardization_anchor_units']==1500 and md['mc_reps_per_anchor']==100
+          assert md['coalitions_per_control']==32 and md['common_random_numbers_across_coalitions']
+          assert not md['estimator_private_SCM_access'] and not md['confirmatory_hyperparameter_tuning']
+          assert fr['status']=='estimation_outputs_frozen_before_private_scoring'
+          print('TMA_WORLD_FREEZE=PASS',w)
+          PY
+      - name: Upload frozen world attribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-tma-estimate-${{ matrix.world }}
+          path: /tmp/tma-estimate/
+          retention-days: 90
+          if-no-files-found: error
+
+  score-private:
+    needs:
+      - preflight
+      - estimate-world
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact execution revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen scoring dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.4.6 pandas==3.0.5 scipy==1.17.0 scikit-learn==1.8.0
+      - name: Download all already frozen estimator artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dchag-v3-tma-estimate-*
+          path: /tmp/tma-estimations
+          merge-multiple: true
+      - name: Verify all 16 freezes before any private download
+        run: |
+          set -euo pipefail
+          test ! -e /tmp/rq1-private.zip
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('/tmp/tma-estimations')
+          worlds=sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith('confirm_'))
+          assert len(worlds)==16,[p.name for p in worlds]
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,'rb') as f:
+                  for b in iter(lambda:f.read(1<<20),b''): h.update(b)
+              return h.hexdigest()
+          for w in worlds:
+              fr=json.loads((w/'FREEZE_MANIFEST.json').read_text())
+              md=json.loads((w/'run_metadata.json').read_text())
+              assert fr['status']=='estimation_outputs_frozen_before_private_scoring'
+              assert md['common_random_numbers_across_coalitions'] and md['mc_reps_per_anchor']==100
+              assert not md['estimator_private_SCM_access']
+              for name,digest in fr['files'].items(): assert sha(w/name)==digest
+          print('ALL_16_TMA_ESTIMATION_OUTPUTS_FROZEN=PASS')
+          PY
+      - name: Download immutable public and private RQ1 scoring material after freeze
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rq1-public /tmp/rq1-private
+          mkdir -p /tmp/rq1-public /tmp/rq1-private
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870327/zip" -o /tmp/rq1-public.zip
+          curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9489870511/zip" -o /tmp/rq1-private.zip
+          echo '0f1c6ebe2c46b65a649d9b3e27d8f4c3b375fa6797cae39a76b8dcd9645a9ff3  /tmp/rq1-public.zip' | sha256sum -c -
+          echo '898dde43e340d2852c43eab940fe46b6dc9652d2620dcf79705c061fcad03278  /tmp/rq1-private.zip' | sha256sum -c -
+          unzip -q /tmp/rq1-public.zip -d /tmp/rq1-public
+          unzip -q /tmp/rq1-private.zip -d /tmp/rq1-private
+      - name: Score typed attribution against private SCM oracle
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/tma-scored && mkdir -p /tmp/tma-scored
+          python experiments/v3/07_typed_effect_attribution/score_typed_mechanism_attribution.py \
+            --estimation-root /tmp/tma-estimations \
+            --public-root /tmp/rq1-public/public \
+            --private-root /tmp/rq1-private/private \
+            --outdir /tmp/tma-scored
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads((Path('/tmp/tma-scored')/'TYPED_MECHANISM_ATTRIBUTION_RESULTS.json').read_text())
+          assert r['experiment_id']=='V3-TMA-001-C1' and r['n_worlds']==16
+          assert r['controls_per_world']==4 and r['coalitions_per_control']==32
+          assert r['anchor_units_per_world']==1500 and r['mc_reps_per_anchor']==100
+          assert r['max_estimator_closure_error'] <= 1e-10
+          assert r['max_estimator_replay_consistency_error'] <= 1e-10
+          assert r['max_oracle_closure_error'] <= 1e-10
+          assert r['max_oracle_replay_consistency_error'] <= 1e-10
+          g=r['guardrails']; assert g['common_random_numbers_across_coalitions']
+          assert not g['estimator_private_SCM_access'] and g['estimation_outputs_frozen_before_private_scoring']
+          print('TMA_PRIVATE_SCORING_GUARDRAILS=PASS')
+          PY
+          (cd /tmp/tma-scored && sha256sum * > RESULT_SHA256.txt)
+          python -m pip freeze > /tmp/tma-scored/SOFTWARE_FREEZE.txt
+          git rev-parse HEAD > /tmp/tma-scored/WORKFLOW_HEAD.txt
+      - name: Upload scored typed-attribution result
+        uses: actions/upload-artifact@v4
+        with:
+          name: dchag-v3-typed-mechanism-attribution-results
+          path: /tmp/tma-scored/
+          retention-days: 90
+          if-no-files-found: error
