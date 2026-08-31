@@ -1,0 +1,2 @@
+DCHAG-V3-FINAL-MANIFEST-SYNC-001
+Trigger only. The workflow may modify only SHA256SUMS.txt on dchag-v3.
