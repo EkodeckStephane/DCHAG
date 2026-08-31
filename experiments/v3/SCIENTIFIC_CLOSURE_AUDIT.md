@@ -2,15 +2,23 @@
 
 ## Closure decision
 
-The planned v3 experimental suite is sufficiently frozen and audited for manuscript use. No additional experiment is required merely to obtain a positive result or to make DCHAG outperform the dense comparator. Further experiments should be motivated by a new scientific question, an external-review request, or a newly discovered validity defect.
+The v3 experimental suite is scientifically closed for the current manuscript. No additional experiment is required merely to obtain a positive result or to make DCHAG outperform the dense comparator. Further experiments should be motivated by a new scientific question, an external-review request, or a newly discovered validity defect.
 
-This closure audit is based on the public `dchag-v3` source-of-truth branch after completion of the principal causal study, cross-family transport, hidden-confounding sensitivity, decision-stability analysis, computational scaling, LANL observational transportability, and corrected OpTC observational ingestion.
+This closure audit covers the principal causal study, cross-family transport, hidden-confounding sensitivity, decision-stability analysis, computational scaling, LANL observational portability, corrected OpTC observational ingestion, and the later typed mechanism-attribution study.
 
 ## Completed evidence blocks
 
-### Principal causal-effect fidelity
+### Principal scalar causal-effect fidelity
 
-`V3-SS-CONF-001` is protocol-complete over 16 pre-reserved worlds. DCHAG effect MAE is 0.01131125 versus 0.01180677 for dense sequential g-formula. The paired world-level difference is −0.000495521 with bootstrap 95% CI [−0.002568289, 0.001717745] and exact sign-flip p=0.6671143. The admissible interpretation is competitive/statistically compatible effect fidelity. Superiority and formal-equivalence claims remain outside the evidence.
+`V3-SS-CONF-001` is protocol-complete over 16 pre-reserved worlds. DCHAG effect MAE is 0.01131125 versus 0.01180677 for dense sequential g-formula. The paired world-level difference is −0.000495521 with bootstrap 95% CI [−0.002568289, 0.001717745] and exact sign-flip p=0.6671143.
+
+The admissible interpretation is competitive/statistically compatible scalar effect fidelity. Superiority and formal-equivalence claims remain outside the evidence.
+
+### Typed mechanism attribution
+
+`V3-TMA-001-C1` is complete on the same immutable 16 semi-synthetic SCM worlds using a distinct typed mechanism-replay attribution endpoint. DCHAG mean TMAE is 0.00273528 versus 0.00385100 for dense sequential g-formula; paired difference −0.00111572 with bootstrap 95% CI [−0.00153806, −0.00072592] and exact sign-flip p=0.00009155. DCHAG has lower TMAE in 15/16 worlds; dominant-mechanism accuracy is 59/64 versus 55/64.
+
+This is a genuine positive endpoint, but it does not revise the RQ1 scalar-effect non-superiority result. It is restricted to the explicit semi-synthetic SCM and does not establish natural indirect effects, real LANL/OpTC causal mechanisms, real causal edges, or real defensive-control effectiveness.
 
 ### Cross-family transport
 
@@ -47,38 +55,39 @@ The following records remain part of the scientific history and must not be dele
 - non-authoritative duplicate decision-stability execution, explicitly excluded from scientific use;
 - all null/unfavorable comparator outcomes documented in the experiment ledger and claim matrix.
 
-## Manuscript consistency audit
+## Current manuscript claim boundary
 
-The current final manuscript and cover letter already reflect the frozen v3 evidence, including:
+The normative internal control is `MANUSCRIPT_CLAIM_MATRIX.md`. The manuscript-safe empirical story is:
 
-- DCHAG 0.01131 versus dense-g 0.01181 in the principal confirmatory benchmark;
-- no superiority or formal-equivalence claim;
-- LOFO degradation for both methods;
-- strong hidden-confounding degradation as an identification boundary;
-- shared finite-sample top-control stability;
-- lower DCHAG fit time over the tested range together with steeper observed scaling slopes and no consistent memory advantage;
-- real LANL and corrected OpTC evidence explicitly separated from causal intervention truth;
-- corrected OpTC pilot values: all 10,000 records mapped, zero failures, H/P/T 98.90%/4.47%/95.53%, 127.23-s normalized timestamp span, nonchronological source order.
+- competitive/statistically compatible principal scalar causal-effect fidelity versus dense-g, without superiority or formal equivalence;
+- exact top-control recovery in the principal semi-synthetic worlds for both methods;
+- a distinct positive typed mechanism-attribution endpoint favoring DCHAG;
+- explicit degradation under leave-one-family-out transfer;
+- explicit degradation under strong hidden confounding;
+- finite-sample top-choice stability shared by DCHAG and dense-g;
+- lower DCHAG fit time over the tested engineering range together with steeper observed scaling slopes and no consistent memory advantage;
+- real LANL and corrected OpTC evidence restricted to observational portability/ingestibility.
 
-The internal `MANUSCRIPT_CLAIM_MATRIX.md` is the normative claim boundary for any further text edits.
+The positive typed-attribution endpoint must never be used to rewrite the null scalar-effect comparison.
 
 ## Repository state and branch policy
 
-- `dchag-v3` remains the persistent scientific source of truth.
-- `main` remains unchanged by this closure action.
-- Draft PR #1 (`dchag-v3` → `main`) must remain unmerged until a deliberate public-release synchronization decision is made.
-- Technical execution PRs are evidence carriers and should remain closed without merge unless a correction explicitly needs to enter `dchag-v3`.
+- `dchag-v3` is the persistent scientific source of truth.
+- `main` remains intentionally unchanged until the final publication-release synchronization gate.
+- Draft PR #1 (`dchag-v3` → `main`) remains unmerged.
+- Technical execution PRs remain closed without merge after their artifacts are retained and audited.
+- The root README, experiment ledger, claim matrix, and this closure audit must agree before the publication snapshot is frozen.
 
-## Remaining pre-submission work
+## Final pre-submission gate
 
-The remaining work is packaging and consistency control, not result generation:
+Result generation is closed. The remaining actions are repository/package controls:
 
-1. freeze a reproducibility snapshot from the final `dchag-v3` state;
-2. record its exact branch/head and SHA-256 in the submission package;
-3. verify the snapshot contains the final audits, claim matrix, OpTC C1/C2 correction records, and experiment ledger while excluding manuscript/editorial files according to the package policy;
-4. update any submission README/checklist/manifest that still references an older reproducibility snapshot;
-5. run the manuscript lint rules and final cross-file title/authorship/corresponding-author checks before upload.
+1. regenerate the repository SHA-256 manifest from the aligned `dchag-v3` content, excluding the manifest itself;
+2. freeze a publication/reproducibility snapshot branch at that exact scientific-content head;
+3. record the frozen branch/head/tree identity in a dedicated snapshot record on `dchag-v3`;
+4. update draft PR #1 with the snapshot identity while keeping it unmerged;
+5. perform final manuscript/submission cross-file consistency checks before upload.
 
 ## Closure conclusion
 
-The project now contains a defensible Q1-level evidence profile precisely because it preserves null, negative, corrected, and comparator-favorable results. The principal scientific story is an auditable causal intervention framework with competitive effect fidelity and explicit transport, identification, decision-stability, observational-portability, and engineering boundaries. Publication-facing claims must remain inside those measured boundaries.
+The project has a defensible Q1-level evidence profile because null, negative, comparator-favorable, failed, corrected, and positive endpoint-specific results are all preserved. The strongest contribution is not universal estimator superiority. It is an auditable typed temporal intervention framework with competitive scalar effect fidelity, a positive typed mechanism-attribution result, explicit transport and identification limits, stable benchmark-level control choice, observational portability, and measured engineering trade-offs.
